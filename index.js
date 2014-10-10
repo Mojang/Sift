@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-var util = require('./util');
-var colors = require('colors');
-var commander = require('commander');
-var pjson = require('./package.json');
-var config = util.loadConfig();
+var util = require('./util')
+var colors = require('colors')
+var commander = require('commander')
+var pjson = require('./package.json')
+var config = util.loadConfig()
 
 commander
 	.version(pjson.version)
@@ -24,56 +24,57 @@ var params = {
       ]
     }
   ]
-};
+}
 
+// Todo, check for NextToken and use for pagination, in case of more than 1k servers
 if (!commander.account) {
 	for (var i in config.ec2_credentials) {
-		var item = config.ec2_credentials[i];
-		var aws = require('aws-sdk');
-		aws.config.update({ accessKeyId: item.accessKeyId, secretAccessKey: item.secretAccessKey });
+		var item = config.ec2_credentials[i]
+		var aws = require('aws-sdk')
+		aws.config.update({ accessKeyId: item.accessKeyId, secretAccessKey: item.secretAccessKey })
 		if (!commander.region) {
 			for (var region in item.regions) {
-				var ec2 = new aws.EC2({ region: item.regions[region] });
+				var ec2 = new aws.EC2({ region: item.regions[region] })
 				ec2.describeInstances(params, function(err, data) {
-				  if (err) console.log(err, err.stack); // an error occurred
-				  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone);           // successful response
-				});
+				  if (err) console.log(err, err.stack) // an error occurred
+				  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone)           // successful response
+				})
 			}
 		} else {
-			var ec2 = new aws.EC2({ region: commander.region });
+			var ec2 = new aws.EC2({ region: commander.region })
 			ec2.describeInstances(params, function(err, data) {
-			  if (err) console.log(err, err.stack); // an error occurred
-			  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone);           // successful response
-			});
+			  if (err) console.log(err, err.stack) // an error occurred
+			  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone)           // successful response
+			})
 		}
 	}
 } else {
-	var found = false;
+	var found = false
 	for (var i in config.ec2_credentials) {
-		var item = config.ec2_credentials[i];
+		var item = config.ec2_credentials[i]
 		if (item.name == commander.account) {
-			found = item;
-			break;
+			found = item
+			break
 		}
 	}
 	if (!found) {
-		return console.log('There is no account with this name');
+		return console.log('There is no account with this name')
 	}
-	var aws = require('aws-sdk');
-	aws.config.update({ accessKeyId: found.accessKeyId, secretAccessKey: found.secretAccessKey });
+	var aws = require('aws-sdk')
+	aws.config.update({ accessKeyId: found.accessKeyId, secretAccessKey: found.secretAccessKey })
 	if (!commander.region) {
 		for (var region in found.regions) {
-			var ec2 = new aws.EC2({ region: found.regions[region] });
+			var ec2 = new aws.EC2({ region: found.regions[region] })
 			ec2.describeInstances(params, function(err, data) {
-			  if (err) console.log(err, err.stack); // an error occurred
-			  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone);           // successful response
-			});
+			  if (err) console.log(err, err.stack) // an error occurred
+			  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone)           // successful response
+			})
 		}
 	} else {
-		var ec2 = new aws.EC2({ region: commander.region });
+		var ec2 = new aws.EC2({ region: commander.region })
 		ec2.describeInstances(params, function(err, data) {
-		  if (err) console.log(err, err.stack); // an error occurred
-		  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone);           // successful response
-		});
+		  if (err) console.log(err, err.stack) // an error occurred
+		  else     console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone)           // successful response
+		})
 	}
 }
