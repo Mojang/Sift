@@ -18,6 +18,7 @@
   "dependencies": {
     "aws-sdk": "^2.0.19",
     "colors": "^1.0.3",
-    "commander": "^2.2.0"
+    "commander": "^2.2.0",
+    "nautical": "^0.1.0"
   }
 }

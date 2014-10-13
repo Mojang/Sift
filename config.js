@@ -1,10 +1,19 @@
 module.exports = exports = {
-	ec2_credentials: [
+	credentials: [
 		{
 			name: 'Example',
-			accessKeyId: 'accessKeyId',
-			secretAccessKey: 'secretAccessKey',
-			regions: ['us-east-1', 'eu-west-1']
+			publicToken: 'publicToken',
+			token: 'token',
+			regions: ['us-east-1', 'eu-west-1'],
+			type: 'amazon'
 		},
-	]
+		{
+			name: 'Example',
+			token: 'token',
+			regions: ['nyc1'],
+			type: 'digitalocean'
+		}
+	],
+	search_plugins: ['amazon', 'digitalocean'],
+	force_regions: false
 }
