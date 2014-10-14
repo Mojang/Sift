@@ -61,10 +61,9 @@ var amazon = module.exports = {
 						'name': amazon.findName(server.Instances[0].Tags),
 						'region': region,
 						// Todo show ipv6? command line argument?
-						'hostname': server.Instances[0].PublicDnsName,
+						'hostname': server.Instances[0].PublicDnsName ? server.Instances[0].PublicDnsName : server.Instances[0].PublicIpAddress,
 						'account': account
 					})
-					server.Instances[0].Tags[0].Value
 				})
 				todo--;
 				if (todo == 0) {
