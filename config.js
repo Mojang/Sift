@@ -10,10 +10,17 @@ module.exports = exports = {
 		{
 			name: 'Example',
 			token: 'token',
-			regions: ['nyc1'],
+			regions: ['nyc1', 'ams1', 'sfo1', 'nyc2', 'ams2', 'sgp1', 'lon1', 'nyc3', 'ams3'],
+			type: 'digitalocean'
+		},
+		{
+			name: 'Example',
+			token: 'token',
 			type: 'digitalocean'
 		}
 	],
-	search_plugins: ['amazon', 'digitalocean'],
+	plugins: ['amazon', 'digitalocean'],
+	allowed_filters: ['icinga'],
+	enabled_filters: [],
 	force_regions: false
 }

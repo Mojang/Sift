@@ -1,4 +1,6 @@
 var aws = require('aws-sdk')
+var util = require('../util')
+var colors = require('colors')
 // Todo search by both internal and external dns/ip? private-dns-name, private-ip-address
 // Todo figure out how to do tags
 var filterNames = {
@@ -14,7 +16,8 @@ var filterNames = {
 var amazon = module.exports = {
 	search: function (account, filters, callback) {
 		// Remove me
-		filters = [{ name: 'name', 'value': 'MojangStatus' }]
+		//filters = [{ name: 'name', value: 'MojangStatus' }]
+		//filters = [{ name: 'name', value: 'MojangStatus' }, { name: 'hostname', value: 'ec2-54-204-36-51.compute-1.amazonaws.com'}, { name: 'hostname', value: 'ec2-107-22-228-99.compute-1.amazonaws.com'}]
 		var params = {
 		  Filters: [
 		    {
@@ -38,6 +41,8 @@ var amazon = module.exports = {
 					} else {
 						filtersToAdd[name].Values.push(filter.value)
 					}
+				} else {
+					console.log('Ignoring invalid filter %s'.red, filter.name)
 				}
 			})
 			Object.keys(filtersToAdd).forEach(function (key) {
@@ -51,7 +56,15 @@ var amazon = module.exports = {
 		account.regions.forEach(function (region) {
 			amazon.searchRegion(region, params, function (servers) {
 				servers.forEach(function (server) {
-					result.push(server.Instances[0].Tags[0].Value)
+					result.push({
+						'id': server.Instances[0].InstanceId,
+						'name': amazon.findName(server.Instances[0].Tags),
+						'region': region,
+						// Todo show ipv6? command line argument?
+						'hostname': server.Instances[0].PublicDnsName,
+						'account': account
+					})
+					server.Instances[0].Tags[0].Value
 				})
 				todo--;
 				if (todo == 0) {
@@ -68,8 +81,26 @@ var amazon = module.exports = {
 		  if (err) {
 		  	return console.log(err, err.stack)
 		  }
+		  if (data.NextToken) {
+		  	console.log('NextToken found, more servers available')
+		  }
 		  callback(data.Reservations)
 		  //console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone)
 		})
-	}
+	},
+	findName: function (tags) {
+		var result = tags.filter(function (element) {
+			return element.Key == 'Name'
+		})
+		return result[0].Value
+	},
+	ssh: function (server, user, port, keyfile, options) {
+		util.ssh(server, user, port, keyfile, options)
+	},
+
+	display: function (server, index) {
+		util.display(server, index)
+	},
+
+	regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2']
 }
