@@ -1,8 +1,8 @@
 {
-  "name": "FindServers",
+  "name": "cloud-sift",
   "preferGlobal": "true",
   "bin": {
-    "FindServers": "index.js"
+    "sift": "index.js"
   },
   "version": "0.0.1",
   "main": "index.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mojang/FindServers.git"
+    "url": "https://github.com/Mojang/sift.git"
   },
   "author": "Mojang",
   "dependencies": {
