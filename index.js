@@ -42,8 +42,11 @@ var gatherServers = function (accounts, regions, filters) {
 		})
 	}
 	accounts.forEach(function (account) {
-		if (force_regions) {
-			account.regions = regions
+		if (force_regions && commander.region) {
+			account.regions = [commander.region]
+			account.regions = account.regions.filter(function filterRegions (region) {
+				return require('./plugins/' + account.type).regions.indexOf(region) > -1
+			})
 		} else {
 			if (account.regions == null) {
 				account.regions = require('./plugins/' + account.type).regions
