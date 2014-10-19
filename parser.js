@@ -7,10 +7,16 @@ var grammar = {
 			["\\(", "return '(';"],
 			["\\)", "return ')';"],
 			["\\&", "return '&';"],
+			["and", "return 'and';"],
+			["AND", "return 'AND';"],
 			["\\|", "return '|';"],
+			["or", "return 'or';"],
+			["OR", "return 'OR';"],
 			["!=", "return '!=';"],
+			["<>", "return '<>';"],
 			["=", "return '=';"],
-			["[a-zA-Z0-9\\-\\.]+", "return 'STRING';"],
+			["has", "return 'has';"],
+			["[a-zA-Z0-9\\-\\.\\?\\*]+", "return 'STRING';"],
 			["$", "return 'EOF';"]
 		]
 	},
@@ -24,109 +30,113 @@ var grammar = {
 			["logic binary_operator key_value", "$$ = { 'type' : 'binary_logic', 'operator' : $2, 'left' : $1, 'right' : $3}"]
 		],
 		"binary_operator" : [
-			["&", "$$ = $1"], 
-			["|", "$$ = $1"]
+			["&", "$$ = '&'"],
+			["AND", "$$ = '&'"],	 
+			["and", "$$ = '&'"], 
+			["|", "$$ = '|'"],
+			["or", "$$ = '|'"],
+			["OR", "$$ = '|'"],
 		],
 		"key_value" : [
 			["STRING equality STRING", "$$ = { 'type' : 'equality', 'operator' : $2, 'left' : $1, 'right' : $3}"],
 			["( logic )", "$$ = $2"]
 		],
 		"equality" : [
-			["=", "$$ = $1"], 
-			["!=", "$$ = $1"]
+			["=", "$$ = '='"], 
+			["<>", "$$ = '!='"], 
+			["!=", "$$ = '!='"],
+			["has", "$$ = $1"]
 		]
 	}
 }
 
 var parser = new Parser(grammar)
-var parserSource = parser.generate()
 
-function evaluate(current_node, expression) {
-	var type = current_node['type']
+module.exports = { 
+	match : function (json_object, query_ast, callback) {
+		try {
+			callback(null, evaluate(query_ast, json_object))
+		} catch (err) {
+			callback(err)
+		}
+	},
+
+	generate_query_ast : function (query, callback) {
+		try {
+			callback(null, parser.parse(query))
+		} catch (err) {
+			callback(err)
+		}
+	},
+
+	generate_query_ast_sync : function (query) {
+		return parser.parse(query)
+	}
+
+}
+
+
+var evaluate = function (current_ast_node, expression) {
+	var type = current_ast_node['type']
 	if (type == 'binary_logic') {
-		return evaluate_binary_logic(current_node, expression)
+		return evaluate_binary_logic(current_ast_node, expression)
 	} else if (type == 'equality') {
-		return evaluate_equality_expression(current_node, expression)
+		return evaluate_equality_expression(current_ast_node, expression)
 	}
 }
 
-function evaluate_binary_logic(current_node, expression) {
-	var operator = current_node['operator']
-	var left = evaluate(current_node['left'], expression)
+var evaluate_binary_logic = function (current_ast_node, expression) {
+	var operator = current_ast_node['operator']
+	var left = evaluate(current_ast_node['left'], expression)
 	var right = false
 	if ((operator == '|' && left) || (operator == '&' && !left) ) {
 		return left	
 	}
-	right = evaluate(current_node['right'], expression)
+	right = evaluate(current_ast_node['right'], expression)
 	if (operator == '|') {
 		return left || right
 	} else if (operator == '&') {
 		return left && right
 	}
-
 }
 
-function evaluate_equality_expression(current_node, expression) {
-	var operator = current_node['operator']
+var evaluate_equality_expression = function (current_ast_node, expression) {
+	var operator = current_ast_node['operator']
 	if (operator == '=') {
-		return evaluate_equality(current_node, expression)
+		return evaluate_equality(current_ast_node, expression)
 	} else if (operator == '!=') {
-		return evaluate_inequality(current_node, expression)
-	} else {
-		console.error("Error!")
+		return evaluate_inequality(current_ast_node, expression)
+	} else if (operator == 'has') {
+		return evaluate_has(current_ast_node, expression)
 	}
 }
 
-function evaluate_inequality(current_node, expression) {
-	var key = current_node['left']
-	var value = current_node['right']
+var evaluate_inequality = function (current_ast_node, expression) {
+	var key = current_ast_node['left'].toLowerCase()
+	var value = current_ast_node['right'].toLowerCase()
 	if (expression[key] != null) {
-		return expression[key] != value
+		return expression[key].toLowerCase() != value
 	} else {
 		return true
 	}
 }
 
-function evaluate_equality(current_node, expression) {
-	var key = current_node['left']
-	var value = current_node['right']
+var evaluate_equality = function (current_ast_node, expression) {
+	var key = current_ast_node['left'].toLowerCase()
+	var value = current_ast_node['right'].toLowerCase()
 	if (expression[key] != null) {
-		return expression[key] == value
+		return expression[key].toLowerCase() == value
 	} else {
 		return false
 	}
 }
 
-
-/*
-* test
-**/
-
-var instances = [
-	{
-		'instance-id' : 'i-12334',
-		'ip' : '127.0.0.1',
-		'ami-id' : 'ubuntu-14.04-kernel'
-	},
-	{
-		'instance-id' : 'i-66666',
-		'ip' : '54.54.0.1',
-		'ami-id' : 'ubuntu-12.10-kernel'
-	},
-]
-
-var sample_query = '(instance-id = i-32333 & ip = 127.0.0.1) | (ip = 54.54.0.1 & ami-id = ubuntu-12.10-kernel)'
-
-try {
-	var result = parser.parse(sample_query)
-} catch (err) {
-	console.error(err.message)
-	throw err
-}
-
-for (var instance in instances) {
-	if (evaluate(result, instances[instance]) == true) {
-		console.log(instances[instance])
+var evaluate_has = function (current_ast_node, expression) {
+	var key = current_ast_node['left'].toLowerCase()
+	var value = current_ast_node['right'].toLowerCase()
+	if (expression[key] != null) {
+		return expression[key].toLowerCase().indexOf(value) > -1
+	} else {
+		return false
 	}
 }
-
