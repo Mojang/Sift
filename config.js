@@ -22,5 +22,12 @@ module.exports = exports = {
   plugins: ['amazon', 'digitalocean'],
   allowed_filters: ['icinga'],
   enabled_filters: [],
-  force_regions: false
+  force_regions: false,
+  ssh_config: [
+    { 
+      default: true,
+      user: 'root',
+      port: 22
+    },
+  ]
 }

@@ -62,9 +62,13 @@ var parser = new Parser(grammar)
 
 module.exports = { 
   match: function (json_object, query_ast, callback) {
+    if (json_object.account != null) {
+      delete json_object.account
+    }
     try {
       callback(null, evaluate(query_ast, json_object))
     } catch (err) {
+      console.trace(err)
       callback(err)
     }
   },
@@ -121,9 +125,9 @@ var evaluate_equality_expression = function (current_ast_node, expression) {
 
 var evaluate_inequality = function (current_ast_node, expression) {
   var key = current_ast_node['left'].toLowerCase()
-  var value = current_ast_node['right'].toLowerCase()
+  var value = (typeof current_ast_node['right'] === String ? current_ast_node['right'].toLowerCase() : current_ast_node['right'])
   if (expression[key] != null) {
-    return expression[key].toLowerCase() != value
+    return (typeof expression[key] === String ? (expression[key].toLowerCase() != value) : (expression[key] != value))
   } else {
     return true
   }
@@ -131,9 +135,9 @@ var evaluate_inequality = function (current_ast_node, expression) {
 
 var evaluate_equality = function (current_ast_node, expression) {
   var key = current_ast_node['left'].toLowerCase()
-  var value = current_ast_node['right'].toLowerCase()
+  var value = (typeof current_ast_node['right'] === String ? current_ast_node['right'].toLowerCase() : current_ast_node['right'])
   if (expression[key] != null) {
-    return expression[key].toLowerCase() == value
+    return (typeof expression[key] === String ? (expression[key].toLowerCase() == value) : (expression[key] == value))
   } else {
     return false
   }
@@ -141,9 +145,9 @@ var evaluate_equality = function (current_ast_node, expression) {
 
 var evaluate_like = function (current_ast_node, expression) {
   var key = current_ast_node['left'].toLowerCase()
-  var value = current_ast_node['right'].toLowerCase()
+  var value = (typeof current_ast_node['right'] === String ? current_ast_node['right'].toLowerCase() : current_ast_node['right'])
   if (expression[key] != null) {
-    return expression[key].toLowerCase().indexOf(value) > -1
+    return (typeof expression[key] === String ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
   } else {
     return false
   }

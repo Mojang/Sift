@@ -3,18 +3,8 @@ var util = require('../util')
 var colors = require('colors')
 // Todo search by both internal and external dns/ip? private-dns-name, private-ip-address
 // Todo figure out how to do tags
-var filterNames = {
-  'id': 'instance-id',
-  'name': 'tag:Name',
-  'ip': 'association.public-ip',
-  'ipv6': 'association.public-ip',
-  'hostname': 'dns-name',
-  'type': 'instance-type',
-  'tag': 'tag:{TAG}'
-}
-
 var amazon = module.exports = {
-  search: function (account, filters, callback) {
+  search: function (account, callback) {
     // Remove me
     //filters = [{ name: 'name', value: 'MojangStatus' }]
     //filters = [{ name: 'name', value: 'MojangStatus' }, { name: 'hostname', value: 'ec2-54-204-36-51.compute-1.amazonaws.com'}, { name: 'hostname', value: 'ec2-107-22-228-99.compute-1.amazonaws.com'}]
@@ -28,7 +18,7 @@ var amazon = module.exports = {
         }
       ]
     }
-    if (filters && filters.length > 0) {
+   /* if (filters && filters.length > 0) {
       var filtersToAdd = {}
       filters.forEach(function (filter) {
         var name = filterNames[filter.name]
@@ -49,7 +39,7 @@ var amazon = module.exports = {
         var filter = filtersToAdd[key]
         params.Filters.push(filter)
       })
-    }
+    }*/
     var result = []
     aws.config.update({ accessKeyId: account.publicToken, secretAccessKey: account.token })
     var todo = account.regions.length;
@@ -62,7 +52,8 @@ var amazon = module.exports = {
             'region': region,
             // Todo show ipv6? command line argument?
             'hostname': server.Instances[0].PublicDnsName ? server.Instances[0].PublicDnsName : server.Instances[0].PublicIpAddress,
-            'account': account
+            'account': account,
+            'image': server.Instances[0].ImageId
           })
         })
         todo--;

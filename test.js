@@ -1,5 +1,5 @@
 
-var parser = require('./parser')
+var parser = require('./query_parser')
 
 /*
 * test
@@ -34,8 +34,7 @@ try {
   throw err
 }
 
-for (var instance in instances) {
-  var cur = instances[instance]
+instances.forEach(function (cur) {
   parser.match(cur, result, function (err, data) {
     if (err) {
       console.error(err)
@@ -43,6 +42,4 @@ for (var instance in instances) {
       console.log(cur)
     }
   })
-}
-
-
+})

@@ -2,6 +2,7 @@
 var util = require('./util')
 var colors = require('colors')
 var commander = require('commander')
+var parser = require('./query_parser')
 var pjson = require('./package.json')
 var config = util.loadConfig()
 if (config == null) {
@@ -16,13 +17,46 @@ commander
 .option('-l --list_accounts', 'List accounts')
 .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
 .option('-e --enable_filter <filter>', 'Enable specific filter')
+.option('-q --query <query>', 'Query')
 .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
 
-var findServers = function (account, filters, callback) {
-  require('./plugins/' + account.type).search(account, filters, function (servers) {
+var findServers = function (account, callback) {
+  require('./plugins/' + account.type).search(account, function (servers) {
     callback(servers)
+  })
+}
+
+/* filter */
+/*
+   var element;
+            filterName.forEach(function (specificFilterName) {
+              if (element == null) {
+                element = server[specificFilterName]
+              } else {
+                element = element[specificFilterName]
+              }
+            })
+*/
+
+var displayResults = function (result) {
+  var index = 0;
+  result.forEach(function (server) {
+    require('./plugins/' + server.account.type).display(server, index++ + 1)
+  })
+  var readline = require('readline')
+  var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+  rl.question("Which server do you want to connect to? ", function (index) {
+    rl.close();
+    var server = result[index-1]
+    if (server == null) {
+      return console.log('Invalid selection'.red)
+    }
+    connectToSSH(result[index-1])
   })
 }
 
@@ -68,30 +102,43 @@ var gatherServers = function (accounts, regions, filters) {
   var result = [];
   var todoCount = todo.length;
   todo.forEach(function (account) {
-    findServers(account, filters, function callback(servers) {
+    findServers(account, function callback(servers) {
       result = result.concat(servers)
       todoCount--
       if (todoCount == 0) {
         if (result.length == 0) {
           return console.log('No matching servers found'.red)
         }
-        var index = 0;
-        result.forEach(function (server) {
-          require('./plugins/' + server.account.type).display(server, index++ + 1)
-        })
-        var readline = require('readline')
-        var rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout
-        })
-        rl.question("Which server do you want to connect to? ", function (index) {
-          rl.close();
-          var server = result[index-1]
-          if (server == null) {
-            return console.log('Invalid selection'.red)
+
+        if (commander.query) {
+          try {
+            var query = parser.generate_query_ast_sync(commander.query)
+          } catch (err) {
+            console.log('Invalid query: %s'.red, err.message)
+            return
           }
-          connectToSSH(result[index-1])
-        })
+
+          var resultCount = result.length;
+          var newResult = []
+          result.forEach(function (server) {
+            // Todo Come up with a better way to clone/disregard account than cloning object using json
+            parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
+              if (error) {
+                console.log('Error parsing %s'.red, error)
+                return
+              }
+              if (matches) {
+                newResult.push(server)
+              }
+              resultCount--
+              if (resultCount == 0) {
+                displayResults(newResult)
+              }
+            })
+          })
+          return
+        }
+        displayResults(result)
       }
     })
   })
@@ -140,7 +187,7 @@ var parseArguments = function () {
   if (commander.account) {
     var found = false
     accounts = config.credentials.filter(function (account) {
-      return account.name.toLowerCase() == commander.account.toLowerCase() || account.publicToken.toLowerCase() == commander.account.toLowerCase()
+      return account.name.toLowerCase() == commander.account.toLowerCase() || (account.publicToken != null && account.publicToken.toLowerCase() == commander.account.toLowerCase())
     })
     accounts = accounts.filter(function (account) {
       if (config.plugins.indexOf(account.type) > -1) {
