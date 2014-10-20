@@ -8,10 +8,12 @@ var grammar = {
 			["\\)", "return ')';"],
 			["\\&", "return '&';"],
 			["and", "return 'and';"],
+			["And", "return 'And';"],
 			["AND", "return 'AND';"],
 			["\\|", "return '|';"],
 			["or", "return 'or';"],
 			["OR", "return 'OR';"],
+			["Or", "return 'Or';"],
 			["!=", "return '!=';"],
 			["<>", "return '<>';"],
 			["=", "return '=';"],
@@ -33,9 +35,11 @@ var grammar = {
 			["&", "$$ = '&'"],
 			["AND", "$$ = '&'"],	 
 			["and", "$$ = '&'"], 
+			["And", "$$ = '&'"], 
 			["|", "$$ = '|'"],
 			["or", "$$ = '|'"],
 			["OR", "$$ = '|'"],
+			["Or", "$$ = '|'"]
 		],
 		"key_value" : [
 			["STRING equality STRING", "$$ = { 'type' : 'equality', 'operator' : $2, 'left' : $1, 'right' : $3}"],
@@ -53,7 +57,7 @@ var grammar = {
 var parser = new Parser(grammar)
 
 module.exports = { 
-	match : function (json_object, query_ast, callback) {
+	match: function (json_object, query_ast, callback) {
 		try {
 			callback(null, evaluate(query_ast, json_object))
 		} catch (err) {
@@ -61,7 +65,7 @@ module.exports = {
 		}
 	},
 
-	generate_query_ast : function (query, callback) {
+	generate_query_ast: function (query, callback) {
 		try {
 			callback(null, parser.parse(query))
 		} catch (err) {
@@ -69,7 +73,7 @@ module.exports = {
 		}
 	},
 
-	generate_query_ast_sync : function (query) {
+	generate_query_ast_sync: function (query) {
 		return parser.parse(query)
 	}
 
