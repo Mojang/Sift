@@ -14,7 +14,7 @@ var grammar = {
       ["<>", "return '<>';"],
       ["=", "return '=';"],
       ["CONTAINS|Contains|contains", "return 'contains';"],
-      ["[a-zA-Z0-9\\-\\.\\?\\*]+", "return 'STRING';"],
+      ["[a-zA-Z0-9\\-\\.\\?\\*\\_]+", "return 'STRING';"],
       ["$", "return 'EOF';"]
     ]
   },
@@ -77,7 +77,7 @@ module.exports = {
 
 
 var evaluate = function (current_ast_node, expression) {
-  var type = current_ast_node['type']
+  var type = current_ast_node.type
   if (type == 'binary_logic') {
     return evaluate_binary_logic(current_ast_node, expression)
   } else if (type == 'equality') {
@@ -112,7 +112,7 @@ var evaluate_equality_expression = function (current_ast_node, expression) {
 }
 
 var evaluate_inequality = function (current_ast_node, expression) {
-  var key = current_ast_node['left'].toLowerCase()
+  var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
   if (expression[key] != null) {
     return (typeof expression[key] === "string" ? (expression[key].toLowerCase() != value) : (expression[key] != value))
@@ -122,7 +122,7 @@ var evaluate_inequality = function (current_ast_node, expression) {
 }
 
 var evaluate_equality = function (current_ast_node, expression) {
-  var key = current_ast_node['left'].toLowerCase()
+  var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
   if (expression[key] != null) {
     return (typeof expression[key] === "string" ? (expression[key].toLowerCase() == value) : (expression[key] == value))
@@ -132,7 +132,7 @@ var evaluate_equality = function (current_ast_node, expression) {
 }
 
 var evaluate_contains = function (current_ast_node, expression) {
-  var key = current_ast_node['left'].toLowerCase()
+  var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
   if (expression[key] != null) {
     return (typeof expression[key] === "string" ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
