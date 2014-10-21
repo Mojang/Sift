@@ -5,9 +5,6 @@ var colors = require('colors')
 // Todo figure out how to do tags
 var amazon = module.exports = {
   search: function (account, callback) {
-    // Remove me
-    //filters = [{ name: 'name', value: 'MojangStatus' }]
-    //filters = [{ name: 'name', value: 'MojangStatus' }, { name: 'hostname', value: 'ec2-54-204-36-51.compute-1.amazonaws.com'}, { name: 'hostname', value: 'ec2-107-22-228-99.compute-1.amazonaws.com'}]
     var params = {
       Filters: [
         {
@@ -18,35 +15,14 @@ var amazon = module.exports = {
         }
       ]
     }
-   /* if (filters && filters.length > 0) {
-      var filtersToAdd = {}
-      filters.forEach(function (filter) {
-        var name = filterNames[filter.name]
-        if (name != null) {
-          if (filtersToAdd[name] == null) {
-            filtersToAdd[name] = { 
-              Name: name, 
-              Values: [ filter.value ] 
-            }
-          } else {
-            filtersToAdd[name].Values.push(filter.value)
-          }
-        } else {
-          console.log('Ignoring invalid filter %s'.red, filter.name)
-        }
-      })
-      Object.keys(filtersToAdd).forEach(function (key) {
-        var filter = filtersToAdd[key]
-        params.Filters.push(filter)
-      })
-    }*/
+
     var result = []
     aws.config.update({ accessKeyId: account.publicToken, secretAccessKey: account.token })
     var todo = account.regions.length;
     account.regions.forEach(function (region) {
       amazon.searchRegion(region, params, function (servers) {
         servers.forEach(function (server) {
-          result.push({
+          var current_instance = {
             'id': server.Instances[0].InstanceId,
             'name': amazon.findName(server.Instances[0].Tags),
             'region': region,
@@ -55,7 +31,13 @@ var amazon = module.exports = {
             'account': account,
             'image': server.Instances[0].ImageId,
             'ip': server.Instances[0].PublicIpAddress
-          })
+          }
+          for (var i in server.Instances[0].Tags) {
+            var tag = server.Instances[0].Tags[i]
+            current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
+          }
+          console.log(current_instance)
+          result.push(current_instance)
         })
         todo--;
         if (todo == 0) {
@@ -76,7 +58,6 @@ var amazon = module.exports = {
         console.log('NextToken found, more servers available')
       }
       callback(data.Reservations)
-      //console.log(data.Reservations[0].Instances[0].Placement.AvailabilityZone)
     })
   },
   findName: function (tags) {
