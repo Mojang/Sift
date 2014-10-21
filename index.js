@@ -18,6 +18,10 @@ commander
 .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
 .option('-e --enable_filter <filter>', 'Enable specific filter')
 .option('-q --query <query>', 'Query')
+.option('-n --name <name>', 'Search by name')
+.option('-H --hostname <hostname>', 'Search by hostname')
+.option('-i --image <image>', 'Search by image')
+.option('-I --ip <ip>', 'Search by ip')
 .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
@@ -114,7 +118,7 @@ var gatherServers = function (accounts, regions, filters) {
           return console.log('No matching servers found'.red)
         }
 
-        if (commander.query || commander.region || (filters != null && filters.length > 0)) {
+        if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || (filters != null && filters.length > 0)) {
           var query;
           var buildQuery = ''
           if (commander.query) {
@@ -122,6 +126,18 @@ var gatherServers = function (accounts, regions, filters) {
           }
           if (commander.region) {
             buildQuery += ' region = ' + commander.region
+          }
+          if (commander.name) {
+            buildQuery += ' name CONTAINS ' + commander.name
+          }
+          if (commander.hostname) {
+            buildQuery += ' hostname = ' + commander.hostname
+          }
+          if (commander.image) {
+            buildQuery += ' image = ' + commander.image
+          }
+          if (commander.ip) {
+            buildQuery += ' ip = ' + commander.ip
           }
           if (filters) {
             buildQuery += ' ' + filters

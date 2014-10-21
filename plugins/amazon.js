@@ -54,7 +54,8 @@ var amazon = module.exports = {
             'hostname': server.Instances[0].PublicDnsName ? server.Instances[0].PublicDnsName : server.Instances[0].PublicIpAddress,
             'account': account,
             'image': server.Instances[0].ImageId,
-            'region': region
+            'region': region,
+            'ip': server.Instances[0].PublicIpAddress,
           })
         })
         todo--;
