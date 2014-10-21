@@ -82,6 +82,6 @@ var util = module.exports = {
     require('child_process').spawn('ssh', ['-tt', user + '@' + (port ? server.hostname + ':' + port : server.hostname)], { stdio: 'inherit' })
   },
   display: function (server, index) {
-    console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.green(server.name), colors.cyan(server.image), colors.yellow(server.hostname), colors.red(server.region))
+    console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.green(server.name), colors.cyan(server.id), colors.yellow(server.hostname), colors.red(server.region))
   }
 }
