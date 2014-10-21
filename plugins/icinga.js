@@ -21,14 +21,14 @@ var icinga = module.exports = {
       if (response.body.status == null || response.body.status.service_status == null) {} else {
         for(var service_status in response.body.status.service_status) {
           var item = response.body.status.service_status[service_status];
-          filters += 'hostname = ' + item.host_name
+          filters += ' OR hostname = ' + item.host_name
         }
       }
-
+      
       if (response.body.status == null || response.body.status.host_status == null) {} else {
         for(var host_status in response.body.status.host_status) {
           var item = response.body.status.host_status[host_status];
-          filters += 'hostname = ' + item.host_name
+          filters += ' OR hostname = ' + item.host_name
         }
       }
       filters = filters.trim()

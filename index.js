@@ -28,6 +28,10 @@ var findServers = function (account, callback) {
   })
 }
 
+var startsWith = function (str, match) {
+    return str.indexOf(match) == 0;
+}
+
 /* filter */
 /*
    var element;
@@ -122,6 +126,14 @@ var gatherServers = function (accounts, regions, filters) {
           if (filters) {
             buildQuery += ' ' + filters
           }
+          buildQuery = buildQuery.trim()
+          if (startsWith(buildQuery, 'AND')) {
+            buildQuery = buildQuery.substring(3)
+          }
+          if (startsWith(buildQuery, 'OR')) {
+            buildQuery = buildQuery.substring(2)
+          }
+          console.log(buildQuery.trim())
           try {
             query = parser.generate_query_ast_sync(buildQuery.trim())
           } catch (err) {
