@@ -36,7 +36,6 @@ var amazon = module.exports = {
             var tag = server.Instances[0].Tags[i]
             current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
           }
-          console.log(current_instance)
           result.push(current_instance)
         })
         todo--;

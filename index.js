@@ -144,8 +144,21 @@ var gatherServers = function (accounts, regions, filters) {
             buildQuery += ' AND ('
             var nameSplitCount = commander.name.length
             commander.name.forEach(function (nameSplit) {
+              if (nameSplit.split(" ").length > 1) {
+                buildQuery += '('
+                var nameSplitSplitCount = nameSplit.split(" ").length
+                nameSplit.split(" ").forEach(function (nameSplitSplit) {
+                  buildQuery += 'name CONTAINS ' + nameSplitSplit
+                  nameSplitSplitCount--
+                  if (nameSplitSplitCount != 0) {
+                    buildQuery += ' AND '
+                  }
+                })
+                buildQuery += ')'
+              } else {
+                buildQuery += 'name CONTAINS ' + nameSplit
+              }
               nameSplitCount--
-              buildQuery += 'name CONTAINS ' + nameSplit
               if (nameSplitCount != 0) {
                 buildQuery += ' OR '
               }
