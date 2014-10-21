@@ -4,8 +4,6 @@ var util = require('../util')
 // Todo figure out how to do multiple values of same filter?
 var digitalOcean = module.exports = {
   search: function (account, callback) {
-    // Remove me
-    //filters = [{ name: 'name', value: 'dmarby.se' }, { name: 'ip', value: '208.68.38.3' }, { name: 'ip', value: '104.131.1.207'}]
     var result = []
     var client = nautical.getClient({ token: account.token })
     client.droplets.list(function (err, reply) {
