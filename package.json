@@ -16,7 +16,7 @@
   },
   "author": "Mojang",
   "dependencies": {
-    "aws-sdk": "^2.0.19",
+    "aws-sdk": "^2.0.21",
     "colors": "^1.0.3",
     "commander": "^2.2.0",
     "jison": "^0.4.15",

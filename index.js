@@ -343,7 +343,7 @@ var parseArguments = function () {
   if (commander.type) {
     var validTypes = []
     commander.type.forEach(function (type) {
-      if (!(config.plugins.indexOf(type) > -1)) {
+      if (!(config.plugins.indexOf(type.toLowerCase()) > -1)) {
         console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
       } else {
         validTypes.push(type.toLowerCase())

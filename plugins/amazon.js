@@ -22,21 +22,23 @@ var amazon = module.exports = {
     account.regions.forEach(function (region) {
       amazon.searchRegion(region, params, function (servers) {
         servers.forEach(function (server) {
-          var current_instance = {
-            'id': server.Instances[0].InstanceId,
-            'name': amazon.findName(server.Instances[0].Tags),
-            'region': region,
-            // Todo show ipv6? command line argument?
-            'hostname': server.Instances[0].PublicDnsName ? server.Instances[0].PublicDnsName : server.Instances[0].PublicIpAddress,
-            'account': account,
-            'image': server.Instances[0].ImageId,
-            'ip': server.Instances[0].PublicIpAddress
-          }
-          for (var i in server.Instances[0].Tags) {
-            var tag = server.Instances[0].Tags[i]
-            current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
-          }
-          result.push(current_instance)
+          server.Instances.forEach(function (instance) {
+            var current_instance = {
+              'id': instance.InstanceId,
+              'name': amazon.findName(instance.Tags),
+              'region': region,
+              // Todo show ipv6? command line argument?
+              'hostname': instance.PublicDnsName ? instance.PublicDnsName : instance.PublicIpAddress,
+              'account': account,
+              'image': instance.ImageId,
+              'ip': instance.PublicIpAddress
+            }
+            for (var i in instance.Tags) {
+              var tag = instance.Tags[i]
+              current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
+            }
+            result.push(current_instance)
+          })
         })
         todo--;
         if (todo == 0) {
@@ -48,6 +50,7 @@ var amazon = module.exports = {
   searchRegion: function (region, params, callback) {
     var ec2 = new aws.EC2({ region: region })
     // Todo, check for NextToken and use for pagination, in case of more than 1k servers
+    // this.hasNextPage(), this.nextPage(callback)
     // Todo, error handling
     ec2.describeInstances(params, function(err, data) {
       if (err) {
