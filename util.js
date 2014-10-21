@@ -9,7 +9,7 @@ function typesMatch(a, b) {
 var util = module.exports = {
   home: process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE,
   loadConfig: function () {
-    var configPath = path.resolve(util.home, '.FindServers.json')
+    var configPath = path.resolve(util.home, '.sift.json')
     var config = require('./config')
     var finalConfig = {};
     if (fs.existsSync(configPath)) {
@@ -61,6 +61,22 @@ var util = module.exports = {
     });
 
     return result;
+  },
+  contains: function (match, array) {
+    for (var i in array) {
+      if (array[i] === match) {
+        return true
+      }
+    }
+    return false
+  },
+  containsWithLowercase: function (match, array) {
+    for (var i in array) {
+      if (array[i].toLowerCase() === match) {
+        return true
+      }
+    }
+    return false
   },
   ssh: function (server, user, port, keyfile, options) {
     require('child_process').spawn('ssh', ['-tt', user + '@' + (port ? server.hostname + ':' + port : server.hostname)], { stdio: 'inherit' })

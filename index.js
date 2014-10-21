@@ -9,19 +9,24 @@ if (config == null) {
   return
 }
 
+var list = function (val) {
+  return val.split(',')
+}
+
 commander
 .version(pjson.version)
-.option('-r, --region <region>', 'Aws region')
-.option('-a --account <account>', 'Account name')
-.option('-t --type <type>', 'Type of account')
+.option('-r, --region <region>', 'Aws region', list)
+.option('-a --account <account>', 'Account name', list)
+.option('-t --type <type>', 'Type of account', list)
 .option('-l --list_accounts', 'List accounts')
 .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
-.option('-e --enable_filter <filter>', 'Enable specific filter')
+.option('-e --enable_filters <filter>', 'Enable specific filter(s)', list)
 .option('-q --query <query>', 'Query')
-.option('-n --name <name>', 'Search by name')
-.option('-H --hostname <hostname>', 'Search by hostname')
-.option('-i --image <image>', 'Search by image')
-.option('-I --ip <ip>', 'Search by ip')
+.option('-n --name <name>', 'Search by name', list)
+.option('-H --hostname <hostname>', 'Search by hostname', list)
+.option('-i --image <image>', 'Search by image', list)
+.option('-I --ip <ip>', 'Search by ip', list)
+.option('--id <id>', 'Search by id', list)
 .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
@@ -85,7 +90,7 @@ var gatherServers = function (accounts, regions, filters) {
   }
   accounts.forEach(function (account) {
     if (force_regions && commander.region) {
-      account.regions = [commander.region]
+      account.regions = commander.region
       account.regions = account.regions.filter(function filterRegions (region) {
         return require('./plugins/' + account.type).regions.indexOf(region) > -1
       })
@@ -118,29 +123,98 @@ var gatherServers = function (accounts, regions, filters) {
           return console.log('No matching servers found'.red)
         }
 
-        if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || (filters != null && filters.length > 0)) {
+        if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || commander.id || (filters != null && filters.length > 0)) {
           var query;
           var buildQuery = ''
-          if (commander.query) {
-            buildQuery += commander.query
-          }
+         
           if (commander.region) {
-            buildQuery += ' region = ' + commander.region
+            buildQuery += ' AND ('
+            var regionSplitCount = commander.region.length
+            commander.region.forEach(function (regionSplit) {
+              regionSplitCount--
+              buildQuery += 'region = ' + regionSplit
+              if (regionSplitCount != 0) {
+                buildQuery += ' OR '
+              }
+            })
+            buildQuery += ')'
           }
+         
           if (commander.name) {
-            buildQuery += ' name CONTAINS ' + commander.name
+            buildQuery += ' AND ('
+            var nameSplitCount = commander.name.length
+            commander.name.forEach(function (nameSplit) {
+              nameSplitCount--
+              buildQuery += 'name CONTAINS ' + nameSplit
+              if (nameSplitCount != 0) {
+                buildQuery += ' OR '
+              }
+            })
+            buildQuery += ')'
           }
+         
           if (commander.hostname) {
-            buildQuery += ' hostname = ' + commander.hostname
+            buildQuery += ' AND ('
+            var hostNameSplitCount = commander.hostname.length
+            commander.hostname.forEach(function (hostnameSplit) {
+              hostNameSplitCount--
+              buildQuery += 'hostname = ' + hostnameSplit
+              if (hostNameSplitCount != 0) {
+                buildQuery += ' OR '
+              }
+            })
+            buildQuery += ')'
           }
+         
           if (commander.image) {
-            buildQuery += ' image = ' + commander.image
+            buildQuery += ' AND ('
+            var imageSplitCount = commander.image.length
+            commander.image.forEach(function (imageSplit) {
+              imageSplitCount--
+              buildQuery += 'image = ' + imageSplit
+              if (imageSplitCount != 0) {
+                buildQuery += ' OR '
+              }
+            })
+            buildQuery += ')'    
           }
+    
           if (commander.ip) {
-            buildQuery += ' ip = ' + commander.ip
+            buildQuery += ' AND ('
+            var ipSplitCount = commander.ip.length
+            commander.ip.forEach(function (ipSplit) {
+              ipSplitCount--
+              buildQuery += 'ip = ' + ipSplit
+              if (ipSplitCount != 0) {
+                buildQuery += ' OR '
+              }
+            })
+            buildQuery += ')'          
           }
+          
+          if (commander.id) {
+            buildQuery += ' AND ('
+            var idSplitcount = commander.id.length
+            commander.id.forEach(function (idSplit) {
+              idSplitcount--
+              buildQuery += 'id = ' + idSplit
+              if (idSplitcount != 0) {
+                buildQuery += ' OR '
+              }
+            })
+            buildQuery += ')'
+          }
+          
           if (filters) {
             buildQuery += ' ' + filters
+          }
+          
+          if (commander.query) {
+            if (buildQuery.length == 0) {
+              buildQuery += commander.query
+            } else {
+              buildQuery += ' AND (' + commander.query + ')'
+            }
           }
           buildQuery = buildQuery.trim()
           if (startsWith(buildQuery, 'AND')) {
@@ -222,12 +296,12 @@ var parseArguments = function () {
   var regions = []
   var accounts = []
   if (commander.region) {
-    regions = [commander.region]
+    regions = commander.region
   }
   if (commander.account) {
     var found = false
     accounts = config.credentials.filter(function (account) {
-      return account.name.toLowerCase() == commander.account.toLowerCase() || (account.publicToken != null && account.publicToken.toLowerCase() == commander.account.toLowerCase())
+      return util.containsWithLowercase(account.name.toLowerCase(), commander.account) || (account.publicToken != null && util.containsWithLowercase(account.publicToken.toLowerCase(), commander.account))
     })
     accounts = accounts.filter(function (account) {
       if (config.plugins.indexOf(account.type) > -1) {
@@ -254,11 +328,16 @@ var parseArguments = function () {
     })
   }
   if (commander.type) {
-    if (!(config.plugins.indexOf(commander.type) > -1)) {
-      return console.log('Please specify a valid type [%s]'.red, config.plugins)
-    }
+    var validTypes = []
+    commander.type.forEach(function (type) {
+      if (!(config.plugins.indexOf(type) > -1)) {
+        console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
+      } else {
+        validTypes.push(type.toLowerCase())
+      }
+    })
     accounts = accounts.filter(function (account) {
-      return account.type == commander.type.toLowerCase()
+      return util.contains(account.type.toLowerCase(), validTypes)
     })
   }
   if (accounts.length == 0) {
