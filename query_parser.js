@@ -7,19 +7,13 @@ var grammar = {
       ["\\(", "return '(';"],
       ["\\)", "return ')';"],
       ["\\&", "return '&';"],
-      ["and", "return 'and';"],
-      ["And", "return 'And';"],
-      ["AND", "return 'AND';"],
       ["\\|", "return '|';"],
-      ["or", "return 'or';"],
-      ["Or", "return 'Or';"],
-      ["OR", "return 'OR';"],
+      ["and|And|AND", "return 'and';"],
+      ["or|OR|Or", "return 'or';"],
       ["!=", "return '!=';"],
       ["<>", "return '<>';"],
       ["=", "return '=';"],
-      ["like", "return 'like';"],
-      ["Like", "return 'Like';"],
-      ["LIKE", "return 'LIKE';"],
+      ["CONTAINS|Contains|contains", "return 'contains';"],
       ["[a-zA-Z0-9\\-\\.\\?\\*]+", "return 'STRING';"],
       ["$", "return 'EOF';"]
     ]
@@ -36,12 +30,8 @@ var grammar = {
     "binary_operator" : [
       ["&", "$$ = '&'"],
       ["and", "$$ = '&'"], 
-      ["And", "$$ = '&'"], 
-      ["AND", "$$ = '&'"], 
       ["|", "$$ = '|'"],
       ["or", "$$ = '|'"],
-      ["Or", "$$ = '|'"],
-      ["OR", "$$ = '|'"]
     ],
     "key_value" : [
       ["STRING equality STRING", "$$ = { 'type' : 'equality', 'operator' : $2, 'left' : $1, 'right' : $3}"],
@@ -51,9 +41,7 @@ var grammar = {
       ["=", "$$ = '='"], 
       ["<>", "$$ = '!='"], 
       ["!=", "$$ = '!='"],
-      ["like", "$$ = $1"],
-      ["Like", "$$ = $1"],
-      ["LIKE", "$$ = $1"]
+      ["contains", "$$ = $1"]
     ]
   }
 }
@@ -98,13 +86,13 @@ var evaluate = function (current_ast_node, expression) {
 }
 
 var evaluate_binary_logic = function (current_ast_node, expression) {
-  var operator = current_ast_node['operator']
-  var left = evaluate(current_ast_node['left'], expression)
+  var operator = current_ast_node.operator
+  var left = evaluate(current_ast_node.left, expression)
   var right = false
   if ((operator == '|' && left) || (operator == '&' && !left)) {
     return left 
   }
-  right = evaluate(current_ast_node['right'], expression)
+  right = evaluate(current_ast_node.right, expression)
   if (operator == '|') {
     return left || right
   } else if (operator == '&') {
@@ -113,21 +101,21 @@ var evaluate_binary_logic = function (current_ast_node, expression) {
 }
 
 var evaluate_equality_expression = function (current_ast_node, expression) {
-  var operator = current_ast_node['operator']
+  var operator = current_ast_node.operator
   if (operator == '=') {
     return evaluate_equality(current_ast_node, expression)
   } else if (operator == '!=') {
     return evaluate_inequality(current_ast_node, expression)
-  } else if (operator.toLowerCase() == 'like') {
-    return evaluate_like(current_ast_node, expression)
+  } else if (operator.toLowerCase() == 'contains') {
+    return evaluate_contains(current_ast_node, expression)
   }
 }
 
 var evaluate_inequality = function (current_ast_node, expression) {
   var key = current_ast_node['left'].toLowerCase()
-  var value = (typeof current_ast_node['right'] === String ? current_ast_node['right'].toLowerCase() : current_ast_node['right'])
+  var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
   if (expression[key] != null) {
-    return (typeof expression[key] === String ? (expression[key].toLowerCase() != value) : (expression[key] != value))
+    return (typeof expression[key] === "string" ? (expression[key].toLowerCase() != value) : (expression[key] != value))
   } else {
     return true
   }
@@ -135,19 +123,19 @@ var evaluate_inequality = function (current_ast_node, expression) {
 
 var evaluate_equality = function (current_ast_node, expression) {
   var key = current_ast_node['left'].toLowerCase()
-  var value = (typeof current_ast_node['right'] === String ? current_ast_node['right'].toLowerCase() : current_ast_node['right'])
+  var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
   if (expression[key] != null) {
-    return (typeof expression[key] === String ? (expression[key].toLowerCase() == value) : (expression[key] == value))
+    return (typeof expression[key] === "string" ? (expression[key].toLowerCase() == value) : (expression[key] == value))
   } else {
     return false
   }
 }
 
-var evaluate_like = function (current_ast_node, expression) {
+var evaluate_contains = function (current_ast_node, expression) {
   var key = current_ast_node['left'].toLowerCase()
-  var value = (typeof current_ast_node['right'] === String ? current_ast_node['right'].toLowerCase() : current_ast_node['right'])
+  var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
   if (expression[key] != null) {
-    return (typeof expression[key] === String ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
+    return (typeof expression[key] === "string" ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
   } else {
     return false
   }

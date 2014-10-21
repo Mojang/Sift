@@ -23,7 +23,7 @@ var instances = [
 ]
 
 //var sample_query = '(instance-id = i-32333 & ip = 127.0.0.1) | (ip = 54.54.0.1 & ami-id = ubuntu-12.10-kernel)'
-var sample_query = '((type LIKE PEO) OR (ip = 127.0.0.1 AND ami-id like ubuntu)) and environment <> STAGE'
+var sample_query = '((type CONTAINS Peo) OR (ip = 127.0.0.1 AND ami-id contains ubuntu)) & environment <> STAGE'
 
 
 
