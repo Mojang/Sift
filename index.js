@@ -110,9 +110,20 @@ var gatherServers = function (accounts, regions, filters) {
           return console.log('No matching servers found'.red)
         }
 
-        if (commander.query) {
+        if (commander.query || commander.region || (filters != null && filters.length > 0)) {
+          var query;
+          var buildQuery = ''
+          if (commander.query) {
+            buildQuery += commander.query
+          }
+          if (commander.region) {
+            buildQuery += ' region = ' + commander.region
+          }
+          if (filters) {
+            buildQuery += ' ' + filters
+          }
           try {
-            var query = parser.generate_query_ast_sync(commander.query)
+            query = parser.generate_query_ast_sync(buildQuery.trim())
           } catch (err) {
             console.log('Invalid query: %s'.red, err.message)
             return
@@ -132,6 +143,9 @@ var gatherServers = function (accounts, regions, filters) {
               }
               resultCount--
               if (resultCount == 0) {
+                if (newResult.length == 0) {
+                  return console.log('No matching servers found'.red)
+                }
                 displayResults(newResult)
               }
             })
@@ -144,20 +158,18 @@ var gatherServers = function (accounts, regions, filters) {
   })
 }
 
-var setupFilters = function (accounts, regions, filters) {
-  if (filters == null) {
-    filters = [];
-  }
+var setupFilters = function (accounts, regions) {
+  var filters = ''
   var alreadyGathered = false;
   if (config.enabled_filters != null && config.enabled_filters.length > 0) {
     alreadyGathered = true
     var enabledFilterCount = config.enabled_filters.length
     config.enabled_filters.forEach(function (filter) {
       require('./plugins/' + filter).filter(config, function (the_filters) {
-        filters = filters.concat(the_filters)
+        filters += the_filters
         enabledFilterCount--
         if (enabledFilterCount == 0) {
-          gatherServers(accounts, regions, filters)
+          gatherServers(accounts, regions, filters.trim())
         }
       })
     })
@@ -166,15 +178,15 @@ var setupFilters = function (accounts, regions, filters) {
     alreadyGathered = true
     if (config.allowed_filters.indexOf(commander.enable_filter.toLowerCase()) > -1) {
       require('./plugins/' + commander.enable_filter.toLowerCase()).filter(config, function (the_filters) {
-        filters = filters.concat(the_filters)
-        gatherServers(accounts, regions, filters)
+        filters += the_filters
+        gatherServers(accounts, regions, filters.trim())
       })
     } else {
       console.log('Ignoring invalid filter %s'.red, commander.enable_filter)
     }
   }
   if (!alreadyGathered) {
-    gatherServers(accounts, regions, filters)
+    gatherServers(accounts, regions, filters.trim())
   }
 }
 

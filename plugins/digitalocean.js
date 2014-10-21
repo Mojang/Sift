@@ -26,7 +26,8 @@ var digitalOcean = module.exports = {
           'hostname': server.networks.v4[0].ip_address,
           'type': 'digitalocean',
           'account': account,
-          'image': server.image.id
+          'image': server.image.id,
+          'region': server.region.slug
         })
       })
       callback(result)

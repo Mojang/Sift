@@ -53,7 +53,8 @@ var amazon = module.exports = {
             // Todo show ipv6? command line argument?
             'hostname': server.Instances[0].PublicDnsName ? server.Instances[0].PublicDnsName : server.Instances[0].PublicIpAddress,
             'account': account,
-            'image': server.Instances[0].ImageId
+            'image': server.Instances[0].ImageId,
+            'region': region
           })
         })
         todo--;
