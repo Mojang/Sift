@@ -14,12 +14,12 @@ Sift simply does the following steps:
 
 Sift supports the following (more expected to come):
 
-- Add as many accounts you need!
-- Add as many cloud providers you need!
-- Use our simple and easy query language to build powerfull queries that can be used to filter results from all providers
-- Execute any shell commands on any set of servers
-- Define aliases for different tasks you need to do so you don't need to type out everything everytime
-- Flexible configuration
+- Add as many _accounts_ you need!
+- Add as many _cloud providers_ you need!
+- Use our simple and easy query language to build _powerfull queries_ that can be used to filter results from all providers
+- Execute any _shell commands_ on any set of servers
+- Define _aliases_ for different tasks you need to do so you don't need to type out everything everytime
+- Flexible _configuration_
 
 
 ## Supported Cloud Providers
@@ -76,12 +76,20 @@ sudo npm link
             "type": "amazon"
         }
     ],
+    "ssh_config": [
+        {
+          "priority": 0,
+          "user": "ubuntu",
+          "port": 22,
+          "options": ["-o", "StrictHostKeyChecking no"]
+        }
+    ]
 }
 ```
 
 So in the above config we have defined 2 accounts namely `Sessions` and `Main` and both of them are connected to `amazon` cloud provider. `Sessions` account does not have any `regions` so `sift` will consider all available regions from the cloud provider which is `amazon`.
 
-**Note** that names you give to different accounts are completely optional and has nothing to do with the real account name in the cloud providers
+**Note**: Names you give to different accounts are completely optional and has nothing to do with the real account name in the cloud providers
 
 ### Sample usages
 
