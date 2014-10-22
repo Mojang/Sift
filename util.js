@@ -78,7 +78,7 @@ var util = module.exports = {
     }
     return false
   },
-  ssh: function (server, user, port, keyfile, options) {
+  ssh: function (server, user, port, keyfile, options, command) {
     var default_args = [user + '@' + server.hostname]
     if (port) {
       default_args.unshift('-p', port)
@@ -88,6 +88,9 @@ var util = module.exports = {
     }
     default_args.unshift('-tt')
     var ssh_args = (options && options.length > 0) ? options.concat(default_args) : default_args;
+    if (command) {
+      ssh_args.push(command)
+    }
     console.log(ssh_args)
     require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
   },

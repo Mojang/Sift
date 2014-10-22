@@ -31,5 +31,6 @@ module.exports = exports = {
       options: ['-o', 'StrictHostKeyChecking no']
     }
   ],
-  alias: {}
+  alias: {},
+  auto_connect_on_one_result: true
 }

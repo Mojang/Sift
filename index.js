@@ -29,6 +29,7 @@ commander
 .option('--id <id>', 'Search by id', list)
 .option('-u --user <user>', 'SSH user')
 .option('-p --port <port>', 'SSH port')
+.option('-c --ssh_command <ssh_command>', 'Command to execute')
 .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
@@ -68,19 +69,23 @@ var displayResults = function (result) {
   result.forEach(function (server) {
     require('./plugins/' + server.account.type).display(server, index++ + 1)
   })
-  var readline = require('readline')
-  var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  })
-  rl.question("Which server do you want to connect to? ", function (index) {
-    rl.close();
-    var server = result[index-1]
-    if (server == null) {
-      return console.log('Invalid selection'.red)
-    }
-    connectToSSH(result[index-1])
-  })
+  if (result.length == 1 && config.auto_connect_on_one_result) {
+    connectToSSH(result[0])
+  } else {
+    var readline = require('readline')
+    var rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+    rl.question("Which server do you want to connect to? ", function (index) {
+      rl.close();
+      var server = result[index-1]
+      if (server == null) {
+        return console.log('Invalid selection'.red)
+      }
+      connectToSSH(result[index-1])
+    })
+  }
 }
 
 var gatherServers = function (accounts, regions, filters) {
@@ -438,7 +443,15 @@ var doSSH = function (server, sshConf) {
     if (commander.user) {
       sshConf.user = commander.user
     }
-    require('./plugins/' + server.account.type).ssh(server, sshConf.user, sshConf.port, sshConf.keyfile, (sshConf.options != null && sshConf.options.length > 0) ? sshConf.options : [])
+    if (alias && alias.command) {
+      sshConf.command = alias.command
+    }
+    if (commander.ssh_command) {
+      sshConf.command = commander.ssh_command
+    }
+    sshConf.port = sshConf.port ? sshConf.port : 22
+    sshConf.user = sshConf.user ? sshConf.user : 'root'
+    require('./plugins/' + server.account.type).ssh(server, sshConf.user, sshConf.port, sshConf.keyfile, (sshConf.options != null && sshConf.options.length > 0) ? sshConf.options : [], sshConf.command)
   } else {
     return console.log('No matching ssh config, please specify a default ssh config'.red)
   }
