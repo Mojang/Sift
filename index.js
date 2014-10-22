@@ -30,6 +30,7 @@ commander
 .option('-u --user <user>', 'SSH user')
 .option('-p --port <port>', 'SSH port')
 .option('-c --ssh_command <ssh_command>', 'Command to execute')
+.option('-A --run_on_all', 'Execute on all found hosts')
 .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
@@ -71,6 +72,11 @@ var displayResults = function (result) {
   })
   if (result.length == 1 && config.auto_connect_on_one_result) {
     connectToSSH(result[0])
+  } else if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
+    // Todo, colorize output?
+    result.forEach(function (server) {
+      connectToSSH(server, true)
+    })
   } else {
     var readline = require('readline')
     var rl = readline.createInterface({
@@ -373,7 +379,7 @@ var parseArguments = function () {
 }
 
 //Todo ssh options, keypair, etc 
-var connectToSSH = function (server) {
+var connectToSSH = function (server, disable_tt) {
   if (config.ssh_config.length < 1) {
     return console.log('Please specify a default ssh config'.red)
   }
@@ -386,7 +392,7 @@ var connectToSSH = function (server) {
         sshConf = the_config
       }
       if (configCount == 0) {
-        doSSH(server, sshConf)
+        doSSH(server, sshConf, disable_tt)
       }
     } else {
       var accountMatch = false
@@ -415,7 +421,7 @@ var connectToSSH = function (server) {
             }
           }
           if (configCount == 0) {
-            doSSH(server, sshConf)
+            doSSH(server, sshConf, disable_tt)
           }
         })
       } else {
@@ -426,7 +432,7 @@ var connectToSSH = function (server) {
           }        
         }
         if (configCount == 0) {
-          doSSH(server, sshConf)
+          doSSH(server, sshConf, disable_tt)
         }
       }
     }
@@ -434,7 +440,7 @@ var connectToSSH = function (server) {
 }
 
 
-var doSSH = function (server, sshConf) {
+var doSSH = function (server, sshConf, disable_tt) {
     // Todo Merge default conf with ssh config, config option?
   if (sshConf) {
     if (commander.port) {
@@ -451,7 +457,7 @@ var doSSH = function (server, sshConf) {
     }
     sshConf.port = sshConf.port ? sshConf.port : 22
     sshConf.user = sshConf.user ? sshConf.user : 'root'
-    require('./plugins/' + server.account.type).ssh(server, sshConf.user, sshConf.port, sshConf.keyfile, (sshConf.options != null && sshConf.options.length > 0) ? sshConf.options : [], sshConf.command)
+    require('./plugins/' + server.account.type).ssh(server, sshConf.user, sshConf.port, sshConf.keyfile, (sshConf.options != null && sshConf.options.length > 0) ? sshConf.options : [], sshConf.command, disable_tt)
   } else {
     return console.log('No matching ssh config, please specify a default ssh config'.red)
   }
