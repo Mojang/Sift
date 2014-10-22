@@ -25,9 +25,17 @@ module.exports = exports = {
   force_regions: false,
   ssh_config: [
     { 
-      default: true,
+      priority: 0,
+      user: 'ubuntu',
+      port: 22,
+      options: ['-o', 'StrictHostKeyChecking no'],
+    },
+    {
+      priority: 1,
+      accounts: ['DMarby'],
       user: 'root',
       port: 22
-    },
-  ]
+    }
+  ],
+  alias: {}
 }

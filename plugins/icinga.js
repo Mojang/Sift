@@ -24,7 +24,7 @@ var icinga = module.exports = {
           filters += ' OR hostname = ' + item.host_name
         }
       }
-      
+
       if (response.body.status == null || response.body.status.host_status == null) {} else {
         for(var host_status in response.body.status.host_status) {
           var item = response.body.status.host_status[host_status];
@@ -32,6 +32,7 @@ var icinga = module.exports = {
         }
       }
       filters = filters.trim()
+      filters = filters.substring(2)
       if (filters.length == 0) {
         console.log('No hosts are down, ignoring icinga filter'.red)
       }

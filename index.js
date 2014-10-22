@@ -27,9 +27,19 @@ commander
 .option('-i --image <image>', 'Search by image', list)
 .option('-I --ip <ip>', 'Search by ip', list)
 .option('--id <id>', 'Search by id', list)
+.option('-u --user <user>', 'SSH user')
+.option('-p --port <port>', 'SSH port')
 .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
+
+var alias = false
+
+if (commander.args.length > 0) {
+  if (config.alias[commander.args.join(' ')] != null) {
+    alias = config.alias[commander.args.join(' ')] 
+  }
+}
 
 var findServers = function (account, callback) {
   require('./plugins/' + account.type).search(account, function (servers) {
@@ -89,8 +99,8 @@ var gatherServers = function (accounts, regions, filters) {
     })
   }
   accounts.forEach(function (account) {
-    if (force_regions && commander.region) {
-      account.regions = commander.region
+    if ((force_regions && commander.region) || (alias && alias.regions)) {
+      account.regions = commander.region ? commander.region : alias.regions
       account.regions = account.regions.filter(function filterRegions (region) {
         return require('./plugins/' + account.type).regions.indexOf(region) > -1
       })
@@ -123,7 +133,7 @@ var gatherServers = function (accounts, regions, filters) {
           return console.log('No matching servers found'.red)
         }
 
-        if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || commander.id || (filters != null && filters.length > 0)) {
+        if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters != null && filters.length > 0)) {
           var query;
           var buildQuery = ''
          
@@ -219,7 +229,7 @@ var gatherServers = function (accounts, regions, filters) {
           }
           
           if (filters) {
-            buildQuery += ' ' + filters
+            buildQuery += ' AND (' + filters + ')'
           }
           
           if (commander.query) {
@@ -229,6 +239,11 @@ var gatherServers = function (accounts, regions, filters) {
               buildQuery += ' AND (' + commander.query + ')'
             }
           }
+
+          if (alias && alias.query) {
+            buildQuery += ' AND (' + alias.query + ')'
+          }
+
           buildQuery = buildQuery.trim()
           if (startsWith(buildQuery, 'AND')) {
             buildQuery = buildQuery.substring(3)
@@ -289,16 +304,18 @@ var setupFilters = function (accounts, regions) {
       })
     })
   }
-  if (commander.enable_filter && !alreadyGathered) {
+  if (commander.enable_filters && !alreadyGathered) {
     alreadyGathered = true
-    if (config.allowed_filters.indexOf(commander.enable_filter.toLowerCase()) > -1) {
-      require('./plugins/' + commander.enable_filter.toLowerCase()).filter(config, function (the_filters) {
-        filters += the_filters
-        gatherServers(accounts, regions, filters.trim())
-      })
-    } else {
-      console.log('Ignoring invalid filter %s'.red, commander.enable_filter)
-    }
+    commander.enable_filters.forEach(function (filter) {
+      if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
+        require('./plugins/' + filter.toLowerCase()).filter(config, function (the_filters) {
+          filters += the_filters
+          gatherServers(accounts, regions, filters.trim())
+        })
+      } else {
+        console.log('Ignoring invalid filter %s'.red, filter)
+      }
+    })
   }
   if (!alreadyGathered) {
     gatherServers(accounts, regions, filters.trim())
@@ -311,10 +328,10 @@ var parseArguments = function () {
   if (commander.region) {
     regions = commander.region
   }
-  if (commander.account) {
+  if (commander.account || (alias && alias.accounts)) {
     var found = false
     accounts = config.credentials.filter(function (account) {
-      return util.containsWithLowercase(account.name.toLowerCase(), commander.account) || (account.publicToken != null && util.containsWithLowercase(account.publicToken.toLowerCase(), commander.account))
+      return util.containsWithLowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.publicToken != null && util.containsWithLowercase(account.publicToken.toLowerCase(), commander.account ? commander.account : alias.accounts))
     })
     accounts = accounts.filter(function (account) {
       if (config.plugins.indexOf(account.type) > -1) {
@@ -361,9 +378,80 @@ var parseArguments = function () {
 
 //Todo ssh options, keypair, etc 
 var connectToSSH = function (server) {
-  require('./plugins/' + server.account.type).ssh(server, 'root', null, null, {})
+  if (config.ssh_config.length < 1) {
+    return console.log('Please specify a default ssh config'.red)
+  }
+  var sshConf;
+  var configCount = config.ssh_config.length
+  config.ssh_config.forEach(function (the_config) {
+    if (the_config.priority == 0) {
+      configCount--
+      if (sshConf == null) {
+        sshConf = the_config
+      }
+      if (configCount == 0) {
+        doSSH(server, sshConf)
+      }
+    } else {
+      var accountMatch = false
+      if (the_config.accounts && (util.containsWithLowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.publicToken != null && util.containsWithLowercase(server.account.publicToken.toLowerCase(), the_config.accounts)))) {
+        accountMatch = true
+      }
+      if (the_config.query && the_config.query != '*') {
+        try {
+          var query = parser.generate_query_ast_sync(the_config.query)
+        } catch (err) {
+          console.log('Invalid ssh config query: %s'.red, err.message)
+          return
+        }
+
+        parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
+          if (error) {
+            console.log('Error parsing %s'.red, error)
+            return
+          }
+          configCount--
+          if (matches) {
+            if ((the_config.accounts && accountMatch) || !the_config.accounts) {
+              if (sshConf == null || the_config.priority > sshConf.priority) {
+                sshConf = the_config
+              }
+            }
+          }
+          if (configCount == 0) {
+            doSSH(server, sshConf)
+          }
+        })
+      } else {
+        configCount--
+        if (accountMatch) {
+          if (sshConf == null || the_config.priority > sshConf.priority) {
+            sshConf = the_config
+          }        
+        }
+        if (configCount == 0) {
+          doSSH(server, sshConf)
+        }
+      }
+    }
+  })
 }
 
+
+var doSSH = function (server, sshConf) {
+    // Todo Merge default conf with ssh config?
+  if (sshConf) {
+    if (commander.port) {
+      sshConf.port = commander.port
+    }
+    if (commander.user) {
+      sshConf.user = commander.user
+    }
+    require('./plugins/' + server.account.type).ssh(server, sshConf.user, sshConf.port, sshConf.keyfile, (sshConf.options != null && sshConf.options.length > 0) ? sshConf.options : [])
+  } else {
+    return console.log('No matching ssh config, please specify a default ssh config'.red)
+  }
+}
 //console.log(commander.args[0])
 
 // Possibly read from shared credential store by AWS? http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs

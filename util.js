@@ -79,7 +79,17 @@ var util = module.exports = {
     return false
   },
   ssh: function (server, user, port, keyfile, options) {
-    require('child_process').spawn('ssh', ['-tt', user + '@' + (port ? server.hostname + ':' + port : server.hostname)], { stdio: 'inherit' })
+    var default_args = [user + '@' + server.hostname]
+    if (port) {
+      default_args.unshift('-p', port)
+    }
+    if (keyfile) {
+      default_args.unshift('-i', keyfile)
+    }
+    default_args.unshift('-tt')
+    var ssh_args = (options && options.length > 0) ? options.concat(default_args) : default_args;
+    console.log(ssh_args)
+    require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
   },
   display: function (server, index) {
     console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.red(server.region), colors.cyan(server.id), colors.green(server.name), colors.yellow(server.hostname))
