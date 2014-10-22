@@ -142,7 +142,7 @@ var gatherServers = function (accounts, regions, filters) {
             var regionSplitCount = commander.region.length
             commander.region.forEach(function (regionSplit) {
               regionSplitCount--
-              buildQuery += 'region = ' + regionSplit
+              buildQuery += 'region = \'' + regionSplit + '\''
               if (regionSplitCount != 0) {
                 buildQuery += ' OR '
               }
@@ -155,16 +155,7 @@ var gatherServers = function (accounts, regions, filters) {
             var nameSplitCount = commander.name.length
             commander.name.forEach(function (nameSplit) {
               if (nameSplit.split(" ").length > 1) {
-                buildQuery += '('
-                var nameSplitSplitCount = nameSplit.split(" ").length
-                nameSplit.split(" ").forEach(function (nameSplitSplit) {
-                  buildQuery += 'name CONTAINS ' + nameSplitSplit
-                  nameSplitSplitCount--
-                  if (nameSplitSplitCount != 0) {
-                    buildQuery += ' AND '
-                  }
-                })
-                buildQuery += ')'
+                buildQuery += 'name CONTAINS \'' + nameSplit + '\''
               } else {
                 buildQuery += 'name CONTAINS ' + nameSplit
               }
@@ -181,7 +172,7 @@ var gatherServers = function (accounts, regions, filters) {
             var hostNameSplitCount = commander.hostname.length
             commander.hostname.forEach(function (hostnameSplit) {
               hostNameSplitCount--
-              buildQuery += 'hostname = ' + hostnameSplit
+              buildQuery += 'hostname = \'' + hostnameSplit + '\''
               if (hostNameSplitCount != 0) {
                 buildQuery += ' OR '
               }
@@ -194,7 +185,7 @@ var gatherServers = function (accounts, regions, filters) {
             var imageSplitCount = commander.image.length
             commander.image.forEach(function (imageSplit) {
               imageSplitCount--
-              buildQuery += 'image = ' + imageSplit
+              buildQuery += 'image = \'' + imageSplit + '\''
               if (imageSplitCount != 0) {
                 buildQuery += ' OR '
               }
@@ -207,7 +198,7 @@ var gatherServers = function (accounts, regions, filters) {
             var ipSplitCount = commander.ip.length
             commander.ip.forEach(function (ipSplit) {
               ipSplitCount--
-              buildQuery += 'ip = ' + ipSplit
+              buildQuery += 'ip = \'' + ipSplit + '\''
               if (ipSplitCount != 0) {
                 buildQuery += ' OR '
               }
@@ -220,7 +211,7 @@ var gatherServers = function (accounts, regions, filters) {
             var idSplitcount = commander.id.length
             commander.id.forEach(function (idSplit) {
               idSplitcount--
-              buildQuery += 'id = ' + idSplit
+              buildQuery += 'id = \'' + idSplit + '\''
               if (idSplitcount != 0) {
                 buildQuery += ' OR '
               }
@@ -439,7 +430,7 @@ var connectToSSH = function (server) {
 
 
 var doSSH = function (server, sshConf) {
-    // Todo Merge default conf with ssh config?
+    // Todo Merge default conf with ssh config, config option?
   if (sshConf) {
     if (commander.port) {
       sshConf.port = commander.port
