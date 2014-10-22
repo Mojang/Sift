@@ -14,7 +14,7 @@ var grammar = {
       ["<>", "return '<>';"],
       ["=", "return '=';"],
       ["CONTAINS|Contains|contains", "return 'contains';"],
-      ["[a-zA-Z0-9\\-\\.\\?\\*\\_]+", "return 'STRING';"],
+      ["[a-zA-Z0-9\\-\\.\\?\\*\\_]+|\\'[a-zA-Z0-9\\-\\.\\?\\*\\_\\s+]+\\'", "return 'STRING';"],
       ["$", "return 'EOF';"]
     ]
   },
@@ -113,7 +113,7 @@ var evaluate_equality_expression = function (current_ast_node, expression) {
 
 var evaluate_inequality = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
-  var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
+  var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
   if (expression[key] != null) {
     return (typeof expression[key] === "string" ? (expression[key].toLowerCase() != value) : (expression[key] != value))
   } else {
@@ -123,7 +123,7 @@ var evaluate_inequality = function (current_ast_node, expression) {
 
 var evaluate_equality = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
-  var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
+  var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
   if (expression[key] != null) {
     return (typeof expression[key] === "string" ? (expression[key].toLowerCase() == value) : (expression[key] == value))
   } else {
@@ -133,10 +133,14 @@ var evaluate_equality = function (current_ast_node, expression) {
 
 var evaluate_contains = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
-  var value = (typeof current_ast_node.right === "string" ? current_ast_node.right.toLowerCase() : current_ast_node.right)
+  var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
   if (expression[key] != null) {
     return (typeof expression[key] === "string" ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
   } else {
     return false
   }
+}
+
+var remove_single_quote = function (value) {
+  return value.replace(/\'/g, '')
 }
