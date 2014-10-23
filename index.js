@@ -53,18 +53,6 @@ var starts_with = function (str, match) {
     return str.indexOf(match) == 0;
 }
 
-/* filter */
-/*
-   var element;
-            filterName.forEach(function (specificFilterName) {
-              if (element == null) {
-                element = server[specificFilterName]
-              } else {
-                element = element[specificFilterName]
-              }
-            })
-*/
-
 var display_results = function (result) {
   var index = 0;
   result.forEach(function (server) {
@@ -150,116 +138,72 @@ var gather_servers = function (accounts, regions, filters) {
 
         if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters != null && filters.length > 0)) {
           var query;
-          var buildQuery = ''
-         
-          if (commander.region) {
-            buildQuery += ' AND ('
-            var regionSplitCount = commander.region.length
-            commander.region.forEach(function (regionSplit) {
-              regionSplitCount--
-              buildQuery += 'region = \'' + regionSplit + '\''
-              if (regionSplitCount != 0) {
-                buildQuery += ' OR '
-              }
-            })
-            buildQuery += ')'
-          }
+          var build_query = ''
          
           if (commander.name) {
-            buildQuery += ' AND ('
+            build_query += ' AND ('
             var nameSplitCount = commander.name.length
             commander.name.forEach(function (nameSplit) {
               if (nameSplit.split(" ").length > 1) {
-                buildQuery += 'name CONTAINS \'' + nameSplit + '\''
+                build_query += 'name CONTAINS \'' + nameSplit + '\''
               } else {
-                buildQuery += 'name CONTAINS ' + nameSplit
+                build_query += 'name CONTAINS ' + nameSplit
               }
               nameSplitCount--
               if (nameSplitCount != 0) {
-                buildQuery += ' OR '
+                build_query += ' OR '
               }
             })
-            buildQuery += ')'
+            build_query += ')'
+          }
+         
+
+          if (commander.region) {
+            build_query += build_commander('region', commander.region)
           }
          
           if (commander.hostname) {
-            buildQuery += ' AND ('
-            var hostNameSplitCount = commander.hostname.length
-            commander.hostname.forEach(function (hostnameSplit) {
-              hostNameSplitCount--
-              buildQuery += 'hostname = \'' + hostnameSplit + '\''
-              if (hostNameSplitCount != 0) {
-                buildQuery += ' OR '
-              }
-            })
-            buildQuery += ')'
+            build_query += build_commander('hostname', commander.hostname)
           }
          
           if (commander.image) {
-            buildQuery += ' AND ('
-            var imageSplitCount = commander.image.length
-            commander.image.forEach(function (imageSplit) {
-              imageSplitCount--
-              buildQuery += 'image = \'' + imageSplit + '\''
-              if (imageSplitCount != 0) {
-                buildQuery += ' OR '
-              }
-            })
-            buildQuery += ')'    
+            build_query += build_commander('image', commander.image)
           }
     
           if (commander.ip) {
-            buildQuery += ' AND ('
-            var ipSplitCount = commander.ip.length
-            commander.ip.forEach(function (ipSplit) {
-              ipSplitCount--
-              buildQuery += 'ip = \'' + ipSplit + '\''
-              if (ipSplitCount != 0) {
-                buildQuery += ' OR '
-              }
-            })
-            buildQuery += ')'          
+            build_query += build_commander('ip', commander.ip)
           }
           
           if (commander.id) {
-            buildQuery += ' AND ('
-            var idSplitcount = commander.id.length
-            commander.id.forEach(function (idSplit) {
-              idSplitcount--
-              buildQuery += 'id = \'' + idSplit + '\''
-              if (idSplitcount != 0) {
-                buildQuery += ' OR '
-              }
-            })
-            buildQuery += ')'
+            build_query += build_commander('id', commander.id)
           }
           
           if (filters) {
-            buildQuery += ' AND (' + filters + ')'
+            build_query += ' AND (' + filters + ')'
           }
           
           if (commander.query) {
-            if (buildQuery.length == 0) {
-              buildQuery += commander.query
+            if (build_query.length == 0) {
+              build_query += commander.query
             } else {
-              buildQuery += ' AND (' + commander.query + ')'
+              build_query += ' AND (' + commander.query + ')'
             }
           }
 
           if (alias && alias.query) {
-            buildQuery += ' AND (' + alias.query + ')'
+            build_query += ' AND (' + alias.query + ')'
           }
 
-          buildQuery = buildQuery.trim()
-          if (starts_with(buildQuery, 'AND')) {
-            buildQuery = buildQuery.substring(3)
+          build_query = build_query.trim()
+          if (starts_with(build_query, 'AND')) {
+            build_query = build_query.substring(3)
           }
-          if (starts_with(buildQuery, 'OR')) {
-            buildQuery = buildQuery.substring(2)
+          if (starts_with(build_query, 'OR')) {
+            build_query = build_query.substring(2)
           }
-          console.log(buildQuery.trim())
+          console.log(build_query.trim())
           try {
-            query = parser.generate_query_ast_sync(buildQuery.trim())
+            query = parser.generate_query_ast_sync(build_query.trim())
           } catch (err) {
             console.log('Invalid query: %s'.red, err.message)
             return
@@ -292,6 +236,20 @@ var gather_servers = function (accounts, regions, filters) {
       }
     })
   })
+}
+
+var build_commander = function (key_name, key) {
+  var build_query = ' AND ('
+  var split_count = key.length
+  key.forEach(function (split) {
+    split_count--
+    build_query += key_name + ' = \'' + split + '\''
+    if (split_count != 0) {
+      build_query += ' OR '
+    }
+  })
+  build_query += ')'
+  return build_query
 }
 
 var setup_filters = function (accounts, regions) {
