@@ -2,7 +2,7 @@ module.exports = exports = {
   credentials: [
     {
       name: 'Example',
-      publicToken: 'publicToken',
+      public_token: 'public_token',
       token: 'token',
       regions: ['us-east-1', 'eu-west-1'],
       type: 'amazon'
@@ -32,5 +32,6 @@ module.exports = exports = {
     }
   ],
   alias: {},
+  alias_includes: [],
   auto_connect_on_one_result: true
 }

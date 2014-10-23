@@ -4,7 +4,7 @@ var colors = require('colors')
 var commander = require('commander')
 var parser = require('./query_parser')
 var pjson = require('./package.json')
-var config = util.loadConfig()
+var config = util.load_config()
 if (config == null) {
   return
 }
@@ -337,7 +337,7 @@ var parseArguments = function () {
   if (commander.account || (alias && alias.accounts)) {
     var found = false
     accounts = config.credentials.filter(function (account) {
-      return util.containsWithLowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.publicToken != null && util.containsWithLowercase(account.publicToken.toLowerCase(), commander.account ? commander.account : alias.accounts))
+      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.publicToken != null && util.contains_with_lowercase(account.publicToken.toLowerCase(), commander.account ? commander.account : alias.accounts))
     })
     accounts = accounts.filter(function (account) {
       if (config.plugins.indexOf(account.type) > -1) {
@@ -400,7 +400,7 @@ var connectToSSH = function (server, disable_tt) {
       }
     } else {
       var accountMatch = false
-      if (the_config.accounts && (util.containsWithLowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.publicToken != null && util.containsWithLowercase(server.account.publicToken.toLowerCase(), the_config.accounts)))) {
+      if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.publicToken != null && util.contains_with_lowercase(server.account.publicToken.toLowerCase(), the_config.accounts)))) {
         accountMatch = true
       }
       if (the_config.query && the_config.query != '*') {

@@ -17,7 +17,7 @@ var amazon = module.exports = {
     }
 
     var result = []
-    aws.config.update({ accessKeyId: account.publicToken, secretAccessKey: account.token })
+    aws.config.update({ accessKeyId: account.public_token, secretAccessKey: account.token })
     var todo = account.regions.length;
     account.regions.forEach(function (region) {
       amazon.searchRegion(region, params, function (servers) {
