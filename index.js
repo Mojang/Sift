@@ -46,16 +46,13 @@ if (commander.args.length > 0) {
 }
 
 if (commander.keys) {
-  for (var k in commander.keys) {
+  commander.keys.forEach(function (key) {
     try {
-      var key = commander.keys[k]
-      var plugin = require('./plugins/' + key)
-      console.log(plugin.keys())
+      console.log(require('./plugins/' + key).keys())
     } catch (err) {
       console.error('Provided plugin \'%s\' does not exist'.red, key)
     }
-  }
-  return
+  })
 }
 
 var find_servers = function (account, callback) {
