@@ -28,6 +28,7 @@ commander
   .option('-i --image <image>', 'Search by image', list)
   .option('-I --ip <ip>', 'Search by ip', list)
   .option('--id <id>', 'Search by id', list)
+  .option('-k --keys <type>', 'List searchable keys for a cloud provider', list)
   .option('-u --user <user>', 'SSH user')
   .option('-p --port <port>', 'SSH port')
   .option('-c --ssh_command <ssh_command>', 'Command to execute')
@@ -42,6 +43,19 @@ if (commander.args.length > 0) {
   if (config.alias[commander.args.join(' ')] != null) {
     alias = config.alias[commander.args.join(' ')]
   }
+}
+
+if (commander.keys) {
+  for (var k in commander.keys) {
+    try {
+      var key = commander.keys[k]
+      var plugin = require('./plugins/' + key)
+      console.log(plugin.keys())
+    } catch (err) {
+      console.error('Provided plugin \'%s\' does not exist'.red, key)
+    }
+  }
+  return
 }
 
 var find_servers = function (account, callback) {

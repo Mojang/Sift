@@ -3,6 +3,11 @@ var util = require('../util')
 // Todo figure out how to do ip-range/like?
 // Todo figure out how to do multiple values of same filter?
 var digitalOcean = module.exports = {
+
+  keys: function () {
+    return ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip']
+  },
+
   search: function (account, callback) {
     var result = []
     var client = nautical.getClient({ token: account.token })
@@ -24,7 +29,6 @@ var digitalOcean = module.exports = {
             'region': server.region.slug,
             // Todo show ipv6? command line argument?
             'hostname': server.networks.v4[0].ip_address,
-            'type': 'digitalocean',
             'account': account,
             'image': server.image.id,
             'ip': server.networks.v4[0].ip_address

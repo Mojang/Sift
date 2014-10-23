@@ -4,7 +4,11 @@ var colors = require('colors')
 // Todo search by both internal and external dns/ip? private-dns-name, private-ip-address
 // Todo figure out how to do tags
 var amazon = module.exports = {
-  
+
+  keys: function () {
+    return ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip']
+  },
+
   search: function (account, callback) {
     var params = {
       Filters: [
