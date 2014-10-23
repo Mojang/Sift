@@ -20,12 +20,12 @@ var amazon = module.exports = {
     aws.config.update({ accessKeyId: account.public_token, secretAccessKey: account.token })
     var todo = account.regions.length;
     account.regions.forEach(function (region) {
-      amazon.searchRegion(region, params, function (servers) {
+      amazon.search_region(region, params, function (servers) {
         servers.forEach(function (server) {
           server.Instances.forEach(function (instance) {
             var current_instance = {
               'id': instance.InstanceId,
-              'name': amazon.findName(instance.Tags),
+              'name': amazon.find_name(instance.Tags),
               'region': region,
               // Todo show ipv6? command line argument?
               'hostname': instance.PublicDnsName ? instance.PublicDnsName : instance.PublicIpAddress,
@@ -47,7 +47,8 @@ var amazon = module.exports = {
       })
     })
   },
-  searchRegion: function (region, params, callback) {
+
+  search_region: function (region, params, callback) {
     var ec2 = new aws.EC2({ region: region })
     // Todo, check for NextToken and use for pagination, in case of more than 1k servers
     // this.hasNextPage(), this.nextPage(callback)
@@ -62,12 +63,14 @@ var amazon = module.exports = {
       callback(data.Reservations)
     })
   },
-  findName: function (tags) {
+
+  find_name: function (tags) {
     var result = tags.filter(function (element) {
       return element.Key == 'Name'
     })
     return result[0].Value
   },
+
   ssh: function (server, user, port, keyfile, options, command, disable_tt) {
     util.ssh(server, user, port, keyfile, options, command, disable_tt)
   },

@@ -31,6 +31,7 @@ var digitalOcean = module.exports = {
       callback(result)
     })
   },
+  
   // Todo option to use DNS for connection?
   ssh: function (server, user, port, keyfile, options, command, disable_tt) {
     util.ssh(server, user, port, keyfile, options, command, disable_tt)

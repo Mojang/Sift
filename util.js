@@ -29,7 +29,7 @@ var util = module.exports = {
       console.log('Please update the default configuration in %s'.red, config_path)
       return null
     }
-
+    
     final_config = util.merge(user_config, config)
 
     if (final_config.alias_includes && final_config.alias_includes.length > 0) {
