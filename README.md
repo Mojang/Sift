@@ -89,12 +89,71 @@ sudo npm link
 
 So in the above config we have defined 2 accounts namely `Sessions` and `Main` and both of them are connected to `amazon` cloud provider. `Sessions` account does not have any `regions` so `sift` will consider all available regions from the cloud provider which is `amazon`.
 
-**Note**: Names you give to different accounts are completely optional and has nothing to do with the real account name in the cloud providers
+**Note**: Names you give to different accounts have nothing to do with the real account name in the cloud providers.
 
 ### Sample usages
 
-// TODO
+If you run `sift` without any argument then it will show a list of all instances in the configured accounts. If you run it with `-l` it will list the current available accounts:
+
+```bash
+$ sift -l 
+Realms amazon (us-east-1,us-west-2,eu-west-1,ap-northeast-1,ap-southeast-2) 
+Main amazon (us-east-1) 
+```
+
+But `sift` comes with querying capability. For simple queries we have provided you with some arguments as following:
+
+- `-n`: filtering based on the name of the instance
+- `-image`: filtering based on the image id
+- `-hostname`: filtering based on the hostname
+- `-ip`: filtering based on the Ip address
+- `--id`: filtering based on instance id
+
+If you need to express a complete query then see next section.
 
 ### Query language
+
+Use `-k` option together with a plugin name to get the list of supported keys that can be used in your queries.
+
+```bash
+$ sift -k amazon
+[ 'id', 'name', 'region', 'hostname', 'account', 'image', 'ip' ]
+```
+
+In order to use `sift` query feature you need to use `-q`:
+
+```bash
+$ sift -q 'name contains session'
+```
+
+You can also put more statement and combine them with `and` and `or`:
+
+```bash
+$ sift -q '(name contains session) or (id = ae7fcafc)'
+```
+
+As you see the statement consists of key and values. Retrieving keys is mentioned in the previous section. 
+You can combine logical statement as much as you need. If you need to have whitespaces in your values you can escape them list this:
+
+```bash
+$ sift -q '(name contains \'auth session\') or (id = i-ae7fcafc)'
+```
+
+#### Supported logical operators
+
+Supported logical operators for the query system:
+- `and`, `And`, `AND`, `&`
+- `or`, `Or`, `OR`, `|`
+
+#### Supported verbs
+
+Supported verbs you can use in your key value statements:
+- `contains`
+- `<>`
+- `!=`
+- `=`
+
+
+### Defining Aliases
 
 // TODO
