@@ -186,19 +186,19 @@ var build_query = function (filters) {
   }
 
   if (commander.hostname) {
-    query += build_query_part('hostname', commander.hostname)
+    query += build_query_part('hostname', commander.hostname, true)
   }
 
   if (commander.image) {
-    query += build_query_part('image', commander.image)
+    query += build_query_part('image', commander.image, true)
   }
 
   if (commander.ip) {
-    query += build_query_part('ip', commander.ip)
+    query += build_query_part('ip', commander.ip, true)
   }
 
   if (commander.id) {
-    query += build_query_part('id', commander.id)
+    query += build_query_part('id', commander.id, true)
   }
 
   if (filters) {
@@ -278,6 +278,15 @@ var setup_filters = function (accounts, regions) {
   }
 }
 
+var defined_accounts = function (account) {
+  if (config.plugins.indexOf(account.type) > -1) {
+    return true
+  } else {
+    console.log('Unknown type %s - ignoring account %s'.red, account.type, account.name)
+    return false
+  }
+}
+
 var parse_arguments = function () {
   var regions = []
   var accounts = []
@@ -289,14 +298,7 @@ var parse_arguments = function () {
     accounts = config.credentials.filter(function (account) {
       return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.publicToken != null && util.contains_with_lowercase(account.publicToken.toLowerCase(), commander.account ? commander.account : alias.accounts))
     })
-    accounts = accounts.filter(function (account) {
-      if (config.plugins.indexOf(account.type) > -1) {
-        return true
-      } else {
-        console.log('Unknown type %s - ignoring account %s'.red, account.type, account.name)
-        return false
-      }
-    })
+    accounts = accounts.filter(defined_accounts)
     if (accounts.length < 1) {
       return console.log('No accounts found with this name or public token'.red)
     }
@@ -304,14 +306,7 @@ var parse_arguments = function () {
     if (config.credentials == null || config.credentials.length < 1) {
       return console.log('No accounts defined in config'.red)
     }
-    accounts = config.credentials.filter(function (account) {
-      if (config.plugins.indexOf(account.type) > -1) {
-        return true
-      } else {
-        console.log('Unknown type %s - ignoring account %s'.red, account.type, account.name)
-        return false
-      }
-    })
+    accounts = config.credentials.filter(defined_accounts)
   }
   if (commander.type) {
     var valid_types = []
