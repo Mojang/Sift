@@ -238,12 +238,12 @@ var gather_servers = function (accounts, regions, filters) {
   })
 }
 
-var build_commander = function (key_name, key) {
+var build_commander = function (key_name, key, with_contains) {
   var build_query = ' AND ('
   var split_count = key.length
   key.forEach(function (split) {
     split_count--
-    build_query += key_name + ' = \'' + split + '\''
+    build_query += key_name + ' ' + with_contains ? 'CONTAINS' : '=' + ' \'' + split + '\''
     if (split_count != 0) {
       build_query += ' OR '
     }
