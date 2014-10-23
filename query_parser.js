@@ -6,12 +6,11 @@ var grammar = {
       ["\\s+", "/* skip whitespaces */"],
       ["\\(", "return '(';"],
       ["\\)", "return ')';"],
-      ["and|And|AND|\\&", "return 'and';"],
-      ["or|OR|Or|\\|", "return 'or';"],
+      ["!=|<>", "return '!=';"],
+      ["\\&\\&|and|And|AND|\\&", "return 'and';"],
+      ["\\|\\||or|OR|Or|\\|", "return 'or';"],
       ["not|NOT|Not|\\!|\\~", "return 'not';"],
-      ["!=", "return '!=';"],
-      ["<>", "return '<>';"],
-      ["=", "return '=';"],
+      ["==|=", "return '=';"],
       ["CONTAINS|Contains|contains", "return 'contains';"],
       ["[a-zA-Z0-9\\-\\.\\?\\*\\_]+|\\'[a-zA-Z0-9\\-\\.\\?\\*\\_\\s+]+\\'", "return 'STRING';"],
       ["$", "return 'EOF';"]
@@ -43,7 +42,6 @@ var grammar = {
     ],
     "equality" : [
       ["=", "$$ = '='"], 
-      ["<>", "$$ = '!='"], 
       ["!=", "$$ = '!='"],
       ["contains", "$$ = $1"]
     ]
