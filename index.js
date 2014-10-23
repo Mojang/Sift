@@ -43,13 +43,13 @@ if (commander.args.length > 0) {
   }
 }
 
-var findServers = function (account, callback) {
+var find_servers = function (account, callback) {
   require('./plugins/' + account.type).search(account, function (servers) {
     callback(servers)
   })
 }
 
-var startsWith = function (str, match) {
+var starts_with = function (str, match) {
     return str.indexOf(match) == 0;
 }
 
@@ -65,18 +65,18 @@ var startsWith = function (str, match) {
             })
 */
 
-var displayResults = function (result) {
+var display_results = function (result) {
   var index = 0;
   result.forEach(function (server) {
     require('./plugins/' + server.account.type).display(server, index++ + 1)
   })
   if (result.length == 1 && config.auto_connect_on_one_result) {
-    connectToSSH(result[0])
+    connect_to_ssh(result[0])
   } else if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
     var color_list = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white']
     var color_index = 0
     result.forEach(function (server) {
-      connectToSSH(server, color_list[color_index++])
+      connect_to_ssh(server, color_list[color_index++])
       if (color_index > (color_list.length - 1)) {
         color_index = 0
       }
@@ -93,12 +93,12 @@ var displayResults = function (result) {
       if (server == null) {
         return console.log('Invalid selection'.red)
       }
-      connectToSSH(result[index-1])
+      connect_to_ssh(result[index-1])
     })
   }
 }
 
-var gatherServers = function (accounts, regions, filters) {
+var gather_servers = function (accounts, regions, filters) {
   var todo = []
   if (regions == null || regions.length < 1) {
     regions = []
@@ -140,7 +140,7 @@ var gatherServers = function (accounts, regions, filters) {
   var result = [];
   var todoCount = todo.length;
   todo.forEach(function (account) {
-    findServers(account, function callback(servers) {
+    find_servers(account, function callback(servers) {
       result = result.concat(servers)
       todoCount--
       if (todoCount == 0) {
@@ -251,10 +251,10 @@ var gatherServers = function (accounts, regions, filters) {
           }
 
           buildQuery = buildQuery.trim()
-          if (startsWith(buildQuery, 'AND')) {
+          if (starts_with(buildQuery, 'AND')) {
             buildQuery = buildQuery.substring(3)
           }
-          if (startsWith(buildQuery, 'OR')) {
+          if (starts_with(buildQuery, 'OR')) {
             buildQuery = buildQuery.substring(2)
           }
           console.log(buildQuery.trim())
@@ -288,13 +288,13 @@ var gatherServers = function (accounts, regions, filters) {
           })
           return
         }
-        displayResults(result)
+        display_results(result)
       }
     })
   })
 }
 
-var setupFilters = function (accounts, regions) {
+var setup_filters = function (accounts, regions) {
   var filters = ''
   var alreadyGathered = false;
   if (config.enabled_filters != null && config.enabled_filters.length > 0) {
@@ -324,11 +324,11 @@ var setupFilters = function (accounts, regions) {
     })
   }
   if (!alreadyGathered) {
-    gatherServers(accounts, regions, filters.trim())
+    gather_servers(accounts, regions, filters.trim())
   }
 }
 
-var parseArguments = function () {
+var parse_arguments = function () {
   var regions = []
   var accounts = []
   if (commander.region) {
@@ -379,11 +379,11 @@ var parseArguments = function () {
   if (accounts.length == 0) {
     return console.log('No valid accounts found'.red)
   }
-  setupFilters(accounts, regions)
+  setup_filters(accounts, regions)
 }
 
 //Todo ssh options, keypair, etc 
-var connectToSSH = function (server, disable_tt) {
+var connect_to_ssh = function (server, disable_tt) {
   if (config.ssh_config.length < 1) {
     return console.log('Please specify a default ssh config'.red)
   }
@@ -396,7 +396,7 @@ var connectToSSH = function (server, disable_tt) {
         sshConf = the_config
       }
       if (configCount == 0) {
-        doSSH(server, sshConf, disable_tt)
+        do_ssh(server, sshConf, disable_tt)
       }
     } else {
       var accountMatch = false
@@ -425,7 +425,7 @@ var connectToSSH = function (server, disable_tt) {
             }
           }
           if (configCount == 0) {
-            doSSH(server, sshConf, disable_tt)
+            do_ssh(server, sshConf, disable_tt)
           }
         })
       } else {
@@ -436,7 +436,7 @@ var connectToSSH = function (server, disable_tt) {
           }        
         }
         if (configCount == 0) {
-          doSSH(server, sshConf, disable_tt)
+          do_ssh(server, sshConf, disable_tt)
         }
       }
     }
@@ -444,7 +444,7 @@ var connectToSSH = function (server, disable_tt) {
 }
 
 
-var doSSH = function (server, sshConf, disable_tt) {
+var do_ssh = function (server, sshConf, disable_tt) {
     // Todo Merge default conf with ssh config, config option?
   if (sshConf) {
     if (commander.port) {
@@ -477,4 +477,4 @@ if (commander.list_accounts) {
   return
 }
 
-parseArguments()
+parse_arguments()

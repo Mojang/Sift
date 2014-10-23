@@ -33,6 +33,7 @@ var util = module.exports = {
 
     return finalConfig
   },
+
   // https://github.com/remy/nodemon/blob/master/lib/utils/merge.js
   merge: function (one, two) {
     var result = one
@@ -62,6 +63,7 @@ var util = module.exports = {
 
     return result;
   },
+
   contains: function (match, array) {
     for (var i in array) {
       if (array[i] === match) {
@@ -70,7 +72,8 @@ var util = module.exports = {
     }
     return false
   },
-  containsWithLowercase: function (match, array) {
+
+  contains_with_lowercase: function (match, array) {
     for (var i in array) {
       if (array[i].toLowerCase() === match) {
         return true
@@ -78,6 +81,7 @@ var util = module.exports = {
     }
     return false
   },
+
   ssh: function (server, user, port, keyfile, options, command, disable_tt) {
     var default_args = [user + '@' + server.hostname]
     if (port) {
@@ -105,6 +109,7 @@ var util = module.exports = {
       child.stderr.on('data', output)
     }
   },
+
   display: function (server, index) {
     console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.red(server.region), colors.cyan(server.id), colors.green(server.name), colors.yellow(server.hostname))
   }
