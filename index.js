@@ -282,7 +282,7 @@ var gather_servers = function (accounts, regions, filters) {
                 if (newResult.length == 0) {
                   return console.log('No matching servers found'.red)
                 }
-                displayResults(newResult)
+                display_results(newResult)
               }
             })
           })
