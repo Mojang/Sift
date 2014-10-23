@@ -94,7 +94,16 @@ var util = module.exports = {
       ssh_args.push(command)
     }
     console.log(ssh_args)
-    require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
+    if (!disable_tt) {
+      require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
+    } else {
+      var child = require('child_process').spawn('ssh', ssh_args)
+      var output = function (data) {
+        console.log(colors[disable_tt](data.toString().replace(/\n$/, '')))
+      }
+      child.stdout.on('data', output)
+      child.stderr.on('data', output)
+    }
   },
   display: function (server, index) {
     console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.red(server.region), colors.cyan(server.id), colors.green(server.name), colors.yellow(server.hostname))

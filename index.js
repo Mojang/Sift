@@ -73,9 +73,13 @@ var displayResults = function (result) {
   if (result.length == 1 && config.auto_connect_on_one_result) {
     connectToSSH(result[0])
   } else if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
-    // Todo, colorize output?
+    var color_list = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white']
+    var color_index = 0
     result.forEach(function (server) {
-      connectToSSH(server, true)
+      connectToSSH(server, color_list[color_index++])
+      if (color_index > (color_list.length - 1)) {
+        color_index = 0
+      }
     })
   } else {
     var readline = require('readline')
