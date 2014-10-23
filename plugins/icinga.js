@@ -5,7 +5,7 @@ var icinga = module.exports = {
     var filters = ''
     if (config.icinga_user == null || config.icinga_pass == null) {
       console.log('Please define icinga_user & icinga_pass in the config'.red);
-      return callback([{ name: 'name', value: '___ERROR___' }])
+      return callback('')
     }
 
     unirest.get('http://watchdog.internal.mojang/cgi-bin/icinga/status.cgi?host=all&type=detail&servicestatustypes=16&hoststatustypes=3&serviceprops=2097162&nostatusheader&jsonoutput').auth({
@@ -16,7 +16,7 @@ var icinga = module.exports = {
       try {
         response.body = JSON.parse(response.body)
       } catch (e) {
-        return console.log('Couldn\'t parse icinga json')
+        return console.log('Couldn\'t parse icinga json'.red)
       }
       if (response.body.status == null || response.body.status.service_status == null) {} else {
         for(var service_status in response.body.status.service_status) {

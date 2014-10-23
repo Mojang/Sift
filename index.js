@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 var util = require('./util')
 var colors = require('colors')
 var commander = require('commander')
@@ -14,24 +15,24 @@ var list = function (val) {
 }
 
 commander
-.version(pjson.version)
-.option('-r, --region <region>', 'Aws region', list)
-.option('-a --account <account>', 'Account name', list)
-.option('-t --type <type>', 'Type of account', list)
-.option('-l --list_accounts', 'List accounts')
-.option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
-.option('-e --enable_filters <filter>', 'Enable specific filter(s)', list)
-.option('-q --query <query>', 'Query')
-.option('-n --name <name>', 'Search by name', list)
-.option('-H --hostname <hostname>', 'Search by hostname', list)
-.option('-i --image <image>', 'Search by image', list)
-.option('-I --ip <ip>', 'Search by ip', list)
-.option('--id <id>', 'Search by id', list)
-.option('-u --user <user>', 'SSH user')
-.option('-p --port <port>', 'SSH port')
-.option('-c --ssh_command <ssh_command>', 'Command to execute')
-.option('-A --run_on_all', 'Execute on all found hosts')
-.parse(process.argv)
+  .version(pjson.version)
+  .option('-r, --region <region>', 'Aws region', list)
+  .option('-a --account <account>', 'Account name', list)
+  .option('-t --type <type>', 'Type of account', list)
+  .option('-l --list_accounts', 'List accounts')
+  .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
+  .option('-e --enable_filters <filter>', 'Enable specific filter(s)', list)
+  .option('-q --query <query>', 'Query')
+  .option('-n --name <name>', 'Search by name', list)
+  .option('-H --hostname <hostname>', 'Search by hostname', list)
+  .option('-i --image <image>', 'Search by image', list)
+  .option('-I --ip <ip>', 'Search by ip', list)
+  .option('--id <id>', 'Search by id', list)
+  .option('-u --user <user>', 'SSH user')
+  .option('-p --port <port>', 'SSH port')
+  .option('-c --ssh_command <ssh_command>', 'Command to execute')
+  .option('-A --run_on_all', 'Execute on all found hosts')
+  .parse(process.argv)
 
 var force_regions = commander.force_regions || config.force_regions
 
@@ -39,7 +40,7 @@ var alias = false
 
 if (commander.args.length > 0) {
   if (config.alias[commander.args.join(' ')] != null) {
-    alias = config.alias[commander.args.join(' ')] 
+    alias = config.alias[commander.args.join(' ')]
   }
 }
 
@@ -50,21 +51,21 @@ var find_servers = function (account, callback) {
 }
 
 var starts_with = function (str, match) {
-    return str.indexOf(match) == 0;
+  return str.indexOf(match) == 0
 }
 
 var display_results = function (result) {
-  var index = 0;
+  var index = 0
   result.forEach(function (server) {
-    require('./plugins/' + server.account.type).display(server, index++ + 1)
+    require('./plugins/' + server.account.type).display(server, index+++1)
   })
   if (result.length == 1 && config.auto_connect_on_one_result) {
-    connect_to_ssh(result[0])
+    prepare_ssh(result[0])
   } else if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
     var color_list = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white']
     var color_index = 0
     result.forEach(function (server) {
-      connect_to_ssh(server, color_list[color_index++])
+      prepare_ssh(server, color_list[color_index++])
       if (color_index > (color_list.length - 1)) {
         color_index = 0
       }
@@ -76,12 +77,12 @@ var display_results = function (result) {
       output: process.stdout
     })
     rl.question("Which server do you want to connect to? ", function (index) {
-      rl.close();
-      var server = result[index-1]
+      rl.close()
+      var server = result[index - 1]
       if (server == null) {
         return console.log('Invalid selection'.red)
       }
-      connect_to_ssh(result[index-1])
+      prepare_ssh(result[index - 1])
     })
   }
 }
@@ -104,14 +105,14 @@ var gather_servers = function (accounts, regions, filters) {
   accounts.forEach(function (account) {
     if ((force_regions && commander.region) || (alias && alias.regions)) {
       account.regions = commander.region ? commander.region : alias.regions
-      account.regions = account.regions.filter(function filterRegions (region) {
+      account.regions = account.regions.filter(function (region) {
         return require('./plugins/' + account.type).regions.indexOf(region) > -1
       })
     } else {
       if (account.regions == null) {
         account.regions = require('./plugins/' + account.type).regions
       }
-      account.regions = account.regions.filter(function filterRegions(region) {
+      account.regions = account.regions.filter(function (region) {
         return regions.indexOf(region) > -1
       })
     }
@@ -125,92 +126,27 @@ var gather_servers = function (accounts, regions, filters) {
     return console.log('No accounts with correct regions found'.red)
   }
 
-  var result = [];
-  var todoCount = todo.length;
+  var result = []
+  var todo_count = todo.length
   todo.forEach(function (account) {
-    find_servers(account, function callback(servers) {
+    find_servers(account, function callback (servers) {
       result = result.concat(servers)
-      todoCount--
-      if (todoCount == 0) {
+      todo_count--
+      if (todo_count == 0) {
         if (result.length == 0) {
           return console.log('No matching servers found'.red)
         }
 
         if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters != null && filters.length > 0)) {
-          var query;
-          var build_query = ''
-         
-          if (commander.name) {
-            build_query += ' AND ('
-            var nameSplitCount = commander.name.length
-            commander.name.forEach(function (nameSplit) {
-              if (nameSplit.split(" ").length > 1) {
-                build_query += 'name CONTAINS \'' + nameSplit + '\''
-              } else {
-                build_query += 'name CONTAINS ' + nameSplit
-              }
-              nameSplitCount--
-              if (nameSplitCount != 0) {
-                build_query += ' OR '
-              }
-            })
-            build_query += ')'
-          }
-         
-
-          if (commander.region) {
-            build_query += build_commander('region', commander.region)
-          }
-         
-          if (commander.hostname) {
-            build_query += build_commander('hostname', commander.hostname)
-          }
-         
-          if (commander.image) {
-            build_query += build_commander('image', commander.image)
-          }
-    
-          if (commander.ip) {
-            build_query += build_commander('ip', commander.ip)
-          }
-          
-          if (commander.id) {
-            build_query += build_commander('id', commander.id)
-          }
-          
-          if (filters) {
-            build_query += ' AND (' + filters + ')'
-          }
-          
-          if (commander.query) {
-            if (build_query.length == 0) {
-              build_query += commander.query
-            } else {
-              build_query += ' AND (' + commander.query + ')'
-            }
-          }
-
-          if (alias && alias.query) {
-            build_query += ' AND (' + alias.query + ')'
-          }
-
-          build_query = build_query.trim()
-          if (starts_with(build_query, 'AND')) {
-            build_query = build_query.substring(3)
-          }
-          if (starts_with(build_query, 'OR')) {
-            build_query = build_query.substring(2)
-          }
-          console.log(build_query.trim())
           try {
-            query = parser.generate_query_ast_sync(build_query.trim())
+            var query = parser.generate_query_ast_sync(build_query(filters))
           } catch (err) {
             console.log('Invalid query: %s'.red, err.message)
             return
           }
 
-          var resultCount = result.length;
-          var newResult = []
+          var result_count = result.length
+          var new_result = []
           result.forEach(function (server) {
             // Todo Come up with a better way to clone/disregard account than cloning object using json
             parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
@@ -219,14 +155,14 @@ var gather_servers = function (accounts, regions, filters) {
                 return
               }
               if (matches) {
-                newResult.push(server)
+                new_result.push(server)
               }
-              resultCount--
-              if (resultCount == 0) {
-                if (newResult.length == 0) {
+              result_count--
+              if (result_count == 0) {
+                if (new_result.length == 0) {
                   return console.log('No matching servers found'.red)
                 }
-                display_results(newResult)
+                display_results(new_result)
               }
             })
           })
@@ -238,50 +174,106 @@ var gather_servers = function (accounts, regions, filters) {
   })
 }
 
-var build_commander = function (key_name, key, with_contains) {
-  var build_query = ' AND ('
+var build_query = function (filters) {
+  var query = ''
+
+  if (commander.name) {
+    query += build_query_part('name', commander.name, true)
+  }
+
+  if (commander.region) {
+    query += build_query_part('region', commander.region, true)
+  }
+
+  if (commander.hostname) {
+    query += build_query_part('hostname', commander.hostname)
+  }
+
+  if (commander.image) {
+    query += build_query_part('image', commander.image)
+  }
+
+  if (commander.ip) {
+    query += build_query_part('ip', commander.ip)
+  }
+
+  if (commander.id) {
+    query += build_query_part('id', commander.id)
+  }
+
+  if (filters) {
+    query += ' AND (' + filters + ')'
+  }
+
+  if (commander.query) {
+    if (query.length == 0) {
+      query += commander.query
+    } else {
+      query += ' AND (' + commander.query + ')'
+    }
+  }
+
+  if (alias && alias.query) {
+    query += ' AND (' + alias.query + ')'
+  }
+
+  query = query.trim()
+  if (starts_with(query, 'AND')) {
+    query = query.substring(3)
+  }
+  if (starts_with(query, 'OR')) {
+    query = query.substring(2)
+  }
+
+  console.log(query)
+
+  return query.trim()
+}
+
+var build_query_part = function (key_name, key, with_contains) {
+  var query = ' AND ('
   var split_count = key.length
   key.forEach(function (split) {
     split_count--
-    build_query += key_name + ' ' + with_contains ? 'CONTAINS' : '=' + ' \'' + split + '\''
+    query += key_name + ' ' + (with_contains ? 'CONTAINS' : '=') + ' \'' + split + '\''
     if (split_count != 0) {
-      build_query += ' OR '
+      query += ' OR '
     }
   })
-  build_query += ')'
-  return build_query
+  query += ')'
+  return query
 }
 
 var setup_filters = function (accounts, regions) {
   var filters = ''
-  var alreadyGathered = false;
-  if (config.enabled_filters != null && config.enabled_filters.length > 0) {
-    alreadyGathered = true
-    var enabledFilterCount = config.enabled_filters.length
-    config.enabled_filters.forEach(function (filter) {
-      require('./plugins/' + filter).filter(config, function (the_filters) {
+  if (commander.enable_filters || (config.enabled_filters != null && config.enabled_filters.length > 0)) {
+    already_gathered = true
+    var filter_list = []
+    if (commander.enable_filters) {
+      filter_list = filter_list.concat(commander.enable_filters.filter(function (filter) {
+        if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
+          return true
+        } else {
+          console.log('Ignoring invalid/disallowed filter %s'.red, filter)
+          return false
+        }
+      }))
+    }
+    if (config.enabled_filters != null && config.enabled_filters.length > 0) {
+      filter_list = filter_list.concat(config.enabled_filters)
+    }
+    filter_list = util.deduplicate_array(filter_list)
+    var filter_count = filter_list.length
+    filter_list.forEach(function (filter) {
+      require('./plugins/' + filter.toLowerCase()).filter(config, function (the_filters) {
         filters += the_filters
-        enabledFilterCount--
-        if (enabledFilterCount == 0) {
-          gatherServers(accounts, regions, filters.trim())
+        filter_count--
+        if (filter_count == 0) {
+          gather_servers(accounts, regions, filters.trim())  
         }
       })
     })
-  }
-  if (commander.enable_filters && !alreadyGathered) {
-    alreadyGathered = true
-    commander.enable_filters.forEach(function (filter) {
-      if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
-        require('./plugins/' + filter.toLowerCase()).filter(config, function (the_filters) {
-          filters += the_filters
-          gatherServers(accounts, regions, filters.trim())
-        })
-      } else {
-        console.log('Ignoring invalid filter %s'.red, filter)
-      }
-    })
-  }
-  if (!alreadyGathered) {
+  } else {
     gather_servers(accounts, regions, filters.trim())
   }
 }
@@ -322,16 +314,16 @@ var parse_arguments = function () {
     })
   }
   if (commander.type) {
-    var validTypes = []
+    var valid_types = []
     commander.type.forEach(function (type) {
       if (!(config.plugins.indexOf(type.toLowerCase()) > -1)) {
         console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
       } else {
-        validTypes.push(type.toLowerCase())
+        valid_types.push(type.toLowerCase())
       }
     })
     accounts = accounts.filter(function (account) {
-      return util.contains(account.type.toLowerCase(), validTypes)
+      return util.contains(account.type.toLowerCase(), valid_types)
     })
   }
   if (accounts.length == 0) {
@@ -341,25 +333,25 @@ var parse_arguments = function () {
 }
 
 //Todo ssh options, keypair, etc 
-var connect_to_ssh = function (server, disable_tt) {
+var prepare_ssh = function (server, disable_tt) {
   if (config.ssh_config.length < 1) {
     return console.log('Please specify a default ssh config'.red)
   }
-  var sshConf;
-  var configCount = config.ssh_config.length
+  var ssh_config
+  var config_count = config.ssh_config.length
   config.ssh_config.forEach(function (the_config) {
     if (the_config.priority == 0) {
-      configCount--
-      if (sshConf == null) {
-        sshConf = the_config
+      config_count--
+      if (ssh_config == null) {
+        ssh_config = the_config
       }
-      if (configCount == 0) {
-        do_ssh(server, sshConf, disable_tt)
+      if (config_count == 0) {
+        ssh(server, ssh_config, disable_tt)
       }
     } else {
-      var accountMatch = false
+      var account_match = false
       if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.publicToken != null && util.contains_with_lowercase(server.account.publicToken.toLowerCase(), the_config.accounts)))) {
-        accountMatch = true
+        account_match = true
       }
       if (the_config.query && the_config.query != '*') {
         try {
@@ -371,30 +363,30 @@ var connect_to_ssh = function (server, disable_tt) {
 
         parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
           if (error) {
-            console.log('Error parsing %s'.red, error)
+            console.log('Error parsing with ssh config query %s'.red, error)
             return
           }
-          configCount--
           if (matches) {
-            if ((the_config.accounts && accountMatch) || !the_config.accounts) {
-              if (sshConf == null || the_config.priority > sshConf.priority) {
-                sshConf = the_config
+            if ((the_config.accounts && account_match) || !the_config.accounts) {
+              if (ssh_config == null || the_config.priority > ssh_config.priority) {
+                ssh_config = the_config
               }
             }
           }
-          if (configCount == 0) {
-            do_ssh(server, sshConf, disable_tt)
+          config_count--
+          if (config_count == 0) {
+            ssh(server, ssh_config, disable_tt)
           }
         })
       } else {
-        configCount--
-        if (accountMatch) {
-          if (sshConf == null || the_config.priority > sshConf.priority) {
-            sshConf = the_config
-          }        
+        if (account_match) {
+          if (ssh_config == null || the_config.priority > ssh_config.priority) {
+            ssh_config = the_config
+          }
         }
-        if (configCount == 0) {
-          do_ssh(server, sshConf, disable_tt)
+        config_count--
+        if (config_count == 0) {
+          ssh(server, ssh_config, disable_tt)
         }
       }
     }
@@ -402,31 +394,28 @@ var connect_to_ssh = function (server, disable_tt) {
 }
 
 
-var do_ssh = function (server, sshConf, disable_tt) {
+var ssh = function (server, ssh_config, disable_tt) {
     // Todo Merge default conf with ssh config, config option?
-  if (sshConf) {
-    if (commander.port) {
-      sshConf.port = commander.port
+    if (ssh_config) {
+      if (commander.port) {
+        ssh_config.port = commander.port
+      }
+      if (commander.user) {
+        ssh_config.user = commander.user
+      }
+      if (alias && alias.command) {
+        ssh_config.command = alias.command
+      }
+      if (commander.ssh_command) {
+        ssh_config.command = commander.ssh_command
+      }
+      ssh_config.port = ssh_config.port ? ssh_config.port : 22
+      ssh_config.user = ssh_config.user ? ssh_config.user : 'root'
+      require('./plugins/' + server.account.type).ssh(server, ssh_config.user, ssh_config.port, ssh_config.keyfile, (ssh_config.options != null && ssh_config.options.length > 0) ? ssh_config.options : [], ssh_config.command, disable_tt)
+    } else {
+      return console.log('No matching ssh config, please specify a default ssh config'.red)
     }
-    if (commander.user) {
-      sshConf.user = commander.user
-    }
-    if (alias && alias.command) {
-      sshConf.command = alias.command
-    }
-    if (commander.ssh_command) {
-      sshConf.command = commander.ssh_command
-    }
-    sshConf.port = sshConf.port ? sshConf.port : 22
-    sshConf.user = sshConf.user ? sshConf.user : 'root'
-    require('./plugins/' + server.account.type).ssh(server, sshConf.user, sshConf.port, sshConf.keyfile, (sshConf.options != null && sshConf.options.length > 0) ? sshConf.options : [], sshConf.command, disable_tt)
-  } else {
-    return console.log('No matching ssh config, please specify a default ssh config'.red)
-  }
 }
-//console.log(commander.args[0])
-
-// Possibly read from shared credential store by AWS? http://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs
 
 if (commander.list_accounts) {
   config.credentials.forEach(function (account) {

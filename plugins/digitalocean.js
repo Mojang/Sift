@@ -7,27 +7,30 @@ var digitalOcean = module.exports = {
     var result = []
     var client = nautical.getClient({ token: account.token })
     client.droplets.list(function (err, reply) {
-      var servers = reply.body.droplets;
-      //Todo error handling
-      //Todo get next page
-      /*// get the next page
-          if ('function' === typeof reply.next)
-              reply.next(callback);
-            else
-                console.log(imageList);*/
-      servers.forEach(function (server) {
-        result.push({
-          'id': server.id,
-          'name': server.name,
-          'region': server.region.slug,
-          // Todo show ipv6? command line argument?
-          'hostname': server.networks.v4[0].ip_address,
-          'type': 'digitalocean',
-          'account': account,
-          'image': server.image.id,
-          'ip': server.networks.v4[0].ip_address
+      if (err) {
+        console.log('Something went wrong when searching DigitalOcean: %s'.red, err)
+      } else {
+        var servers = reply.body.droplets;
+        //Todo get next page
+        /*// get the next page
+            if ('function' === typeof reply.next)
+                reply.next(callback);
+              else
+                  console.log(imageList);*/
+        servers.forEach(function (server) {
+          result.push({
+            'id': server.id,
+            'name': server.name,
+            'region': server.region.slug,
+            // Todo show ipv6? command line argument?
+            'hostname': server.networks.v4[0].ip_address,
+            'type': 'digitalocean',
+            'account': account,
+            'image': server.image.id,
+            'ip': server.networks.v4[0].ip_address
+          })
         })
-      })
+      }
       callback(result)
     })
   },

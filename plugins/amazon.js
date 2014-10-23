@@ -4,6 +4,7 @@ var colors = require('colors')
 // Todo search by both internal and external dns/ip? private-dns-name, private-ip-address
 // Todo figure out how to do tags
 var amazon = module.exports = {
+  
   search: function (account, callback) {
     var params = {
       Filters: [
@@ -55,7 +56,8 @@ var amazon = module.exports = {
     // Todo, error handling
     ec2.describeInstances(params, function(err, data) {
       if (err) {
-        return console.log(err, err.stack)
+        console.log('Something went wrong when searching Amazon: %s'.red, err)
+        return callback([])
       }
       if (data.NextToken) {
         console.log('NextToken found, more servers available')

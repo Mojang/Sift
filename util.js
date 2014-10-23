@@ -29,7 +29,7 @@ var util = module.exports = {
       console.log('Please update the default configuration in %s'.red, config_path)
       return null
     }
-    
+
     final_config = util.merge(user_config, config)
 
     if (final_config.alias_includes && final_config.alias_includes.length > 0) {
@@ -39,7 +39,7 @@ var util = module.exports = {
           var json = JSON.parse(alias_file)
         } catch (e) {
           return console.log('Error reading %s, invalid syntax?'.red, alias_include)
-        }
+        }   
         Object.keys(json).forEach(function (key) {
           if (final_config.alias[key] == null) {
             final_config.alias[key] = json[key]
@@ -99,6 +99,12 @@ var util = module.exports = {
 
   display: function (server, index) {
     console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.red(server.region), colors.cyan(server.id), colors.green(server.name), colors.yellow(server.hostname))
+  },
+
+  deduplicate_array: function (array) {
+    return array.filter(function (elem, pos) {
+      return array.indexOf(elem) == pos;
+    })
   },
 
   // https://github.com/remy/nodemon/blob/master/lib/utils/merge.js
