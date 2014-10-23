@@ -129,7 +129,7 @@ $ sift -q 'name contains session'
 You can also put more statement and combine them with `and` and `or`:
 
 ```bash
-$ sift -q '(name contains session) or (id = ae7fcafc)'
+$ sift -q '(name contains session) or (id = i-ae7fcafc)'
 ```
 
 As you see the statement consists of key and values. Retrieving keys is mentioned in the previous section. 
@@ -144,6 +144,7 @@ $ sift -q '(name contains \'auth session\') or (id = i-ae7fcafc)'
 Supported logical operators for the query system:
 - `and`, `And`, `AND`, `&`
 - `or`, `Or`, `OR`, `|`
+- `not`, `Not`, `NOT`, `~`, `!`
 
 #### Supported verbs
 

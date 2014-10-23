@@ -6,10 +6,9 @@ var grammar = {
       ["\\s+", "/* skip whitespaces */"],
       ["\\(", "return '(';"],
       ["\\)", "return ')';"],
-      ["\\&", "return '&';"],
-      ["\\|", "return '|';"],
-      ["and|And|AND", "return 'and';"],
-      ["or|OR|Or", "return 'or';"],
+      ["and|And|AND|\\&", "return 'and';"],
+      ["or|OR|Or|\\|", "return 'or';"],
+      ["not|NOT|Not|\\!|\\~", "return 'not';"],
       ["!=", "return '!=';"],
       ["<>", "return '<>';"],
       ["=", "return '=';"],
@@ -24,18 +23,23 @@ var grammar = {
       ["logic EOF", "return $1"]
     ], 
     "logic" : [
-      ["key_value", "$$ = $1"], 
-      ["logic binary_operator key_value", "$$ = { 'type' : 'binary_logic', 'operator' : $2, 'left' : $1, 'right' : $3}"]
+      ["sub_logic", "$$ = $1"], 
+      ["logic binary_operator sub_logic", "$$ = { 'type' : 'binary_logic', 'operator' : $2, 'left' : $1, 'right' : $3}"]
     ],
-    "binary_operator" : [
-      ["&", "$$ = '&'"],
-      ["and", "$$ = '&'"], 
-      ["|", "$$ = '|'"],
-      ["or", "$$ = '|'"],
+    "sub_logic" : [
+      ["unary_operator key_value", "$$ = { 'type' : 'unary_logic', 'operator' : $1, 'right' : $2}"],
+      ["key_value", "$$ = $1"]
     ],
     "key_value" : [
       ["STRING equality STRING", "$$ = { 'type' : 'equality', 'operator' : $2, 'left' : $1, 'right' : $3}"],
       ["( logic )", "$$ = $2"]
+    ],
+    "binary_operator" : [
+      ["and", "$$ = '&'"], 
+      ["or", "$$ = '|'"],
+    ],
+    "unary_operator" : [
+      ["not", "$$ = 'not'"]
     ],
     "equality" : [
       ["=", "$$ = '='"], 
@@ -80,6 +84,8 @@ var evaluate = function (current_ast_node, expression) {
   var type = current_ast_node.type
   if (type == 'binary_logic') {
     return evaluate_binary_logic(current_ast_node, expression)
+  } else if (type == 'unary_logic') {
+    return evaluate_unary_logic(current_ast_node, expression)
   } else if (type == 'equality') {
     return evaluate_equality_expression(current_ast_node, expression)
   }
@@ -98,6 +104,10 @@ var evaluate_binary_logic = function (current_ast_node, expression) {
   } else if (operator == '&') {
     return left && right
   }
+}
+
+var evaluate_unary_logic = function (current_ast_node, expression) {
+  return !evaluate(current_ast_node.right, expression)
 }
 
 var evaluate_equality_expression = function (current_ast_node, expression) {
