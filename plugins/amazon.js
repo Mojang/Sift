@@ -5,10 +5,6 @@ var colors = require('colors')
 // Todo figure out how to do tags
 var amazon = module.exports = {
 
-  keys: function () {
-    return ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip']
-  },
-
   search: function (account, callback) {
     var params = {
       Filters: [
@@ -85,5 +81,7 @@ var amazon = module.exports = {
     util.display(server, index)
   },
 
-  regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2']
+  regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2'],
+
+  keys: util.keys
 }

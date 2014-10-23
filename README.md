@@ -117,7 +117,7 @@ Use `-k` option together with a plugin name to get the list of supported keys th
 
 ```bash
 $ sift -k amazon
-[ 'id', 'name', 'region', 'hostname', 'account', 'image', 'ip' ]
+Keys for amazon: id, name, region, hostname, account, image, ip
 ```
 
 In order to use `sift` query feature you need to use `-q`:
@@ -126,7 +126,7 @@ In order to use `sift` query feature you need to use `-q`:
 $ sift -q 'name contains session'
 ```
 
-You can also put more statement and combine them with `and` and `or`:
+You can also have more than one statement, and combine them with `and` / `or`:
 
 ```bash
 $ sift -q '(name contains session) or (id = i-ae7fcafc)'
@@ -158,3 +158,5 @@ Supported verbs you can use in your key value statements:
 ### Defining Aliases
 
 // TODO
+
+#### Including alias from file

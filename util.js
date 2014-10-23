@@ -107,6 +107,8 @@ var util = module.exports = {
     })
   },
 
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip'],
+
   // https://github.com/remy/nodemon/blob/master/lib/utils/merge.js
   merge: function (one, two) {
     var result = one

@@ -45,16 +45,6 @@ if (commander.args.length > 0) {
   }
 }
 
-if (commander.keys) {
-  commander.keys.forEach(function (key) {
-    try {
-      console.log(require('./plugins/' + key).keys())
-    } catch (err) {
-      console.error('Provided plugin \'%s\' does not exist'.red, key)
-    }
-  })
-}
-
 var find_servers = function (account, callback) {
   require('./plugins/' + account.type).search(account, function (servers) {
     callback(servers)
@@ -426,6 +416,17 @@ var ssh = function (server, ssh_config, disable_tt) {
 if (commander.list_accounts) {
   config.credentials.forEach(function (account) {
     console.log('%s %s (%s)' + (account.publicToken ? ' - %s' : ''), account.name.green, account.type.blue, colors.yellow(account.regions), account.publicToken ? colors.red(account.publicToken) : '')
+  })
+  return
+}
+
+if (commander.keys) {
+  commander.keys.forEach(function (key) {
+    try {
+      console.log("Keys for %s: %s".white, colors.blue(key), require('./plugins/' + key).keys.join(", "))
+    } catch (err) {
+      console.error('Provided plugin \'%s\' does not exist'.red, key)
+    }
   })
   return
 }

@@ -4,10 +4,6 @@ var util = require('../util')
 // Todo figure out how to do multiple values of same filter?
 var digitalOcean = module.exports = {
 
-  keys: function () {
-    return ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip']
-  },
-
   search: function (account, callback) {
     var result = []
     var client = nautical.getClient({ token: account.token })
@@ -48,5 +44,7 @@ var digitalOcean = module.exports = {
     util.display(server, index)
   },
 
-  regions: ['nyc1', 'ams1', 'sfo1', 'nyc2', 'ams2', 'sgp1', 'lon1', 'nyc3', 'ams3']
+  regions: ['nyc1', 'ams1', 'sfo1', 'nyc2', 'ams2', 'sgp1', 'lon1', 'nyc3', 'ams3'],
+
+  keys: util.keys
 }
