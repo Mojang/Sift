@@ -150,9 +150,8 @@ Supported logical operators for the query system:
 
 Supported verbs you can use in your key value statements:
 - `contains`
-- `<>`
-- `!=`
-- `=`
+- `<>`, `!=`
+- `=`, `==`
 
 
 ### Defining Aliases
