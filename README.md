@@ -136,7 +136,7 @@ As you see the statement consists of key and values. Retrieving keys is mentione
 You can combine logical statement as much as you need. If you need to have whitespaces in your values you can escape them list this:
 
 ```bash
-$ sift -q '(name contains \'auth session\') or (id = i-ae7fcafc)'
+$ sift -q "(name contains 'auth session') or (id = i-ae7fcafc)"
 ```
 
 #### Supported logical operators
@@ -149,13 +149,133 @@ Supported logical operators for the query system:
 #### Supported verbs
 
 Supported verbs you can use in your key value statements:
-- `contains`
+- `contains`, `CONTAINS`, `Contains`
 - `<>`, `!=`
 - `=`, `==`
 
 
 ### Defining Aliases
 
-// TODO
+If you're running some queries every day you can define alias for them so you don't type them out every time you need them. You can use the key `alias` in your config file to define a list of aliases:
+
+```javascript
+{
+   "alias":{
+      "session":{
+         "accounts":[
+            "Sessions"
+         ],
+         "query":"(tag.type = Auth) AND (tag.environment = PRODUCTION)"
+      },
+      "session log":{
+         "accounts":[
+            "Sessions"
+         ],
+         "query":"(tag.type = Auth) AND (tag.environment = PRODUCTION)",
+         "command":"tail -1000f /opt/session-logs/session.log"
+      }
+   }
+}
+```
+
+And you can use them like this:
+
+```bash
+$ sift session
+```
+
+```bash
+$ sift session log
+```
 
 #### Including alias from file
+
+You can define your aliases in a separate file and include them in your config file as the following:
+
+```javascript
+{
+    "alias_includes": ["/Users/amir/Documents/my\_aliases.json"]
+}
+```
+
+And `my_aliases.json` looks like this:
+
+```javascript
+{
+    "session":{
+     "accounts":[
+        "Sessions"
+     ],
+     "query":"(tag.type = Auth) AND (tag.environment = PRODUCTION)"
+    },
+    "session log":{
+     "accounts":[
+        "Sessions"
+     ],
+     "query":"(tag.type = Auth) AND (tag.environment = PRODUCTION)",
+     "command":"tail -1000f /opt/session-logs/session.log"
+    }
+}
+```
+
+
+### Reference config file
+
+```javascript
+{
+   "credentials":[
+      {
+         "name":"Realms",
+         "public_token":"XXXXXXXXXXXXXXXXXXXXXXXX",
+         "token":"XXXXXXXXXXXXXXXXXXXXXXXXXX",
+         "regions":[
+            "us-east-1",
+            "us-west-2",
+            "eu-west-1",
+            "ap-northeast-1",
+            "ap-southeast-2"
+         ],
+         "type":"amazon"
+      },
+   ],
+   "ssh_config":[
+      {
+         "priority":0,
+         "user":"ubuntu",
+         "port":22,
+         "options":[
+            "-o",
+            "StrictHostKeyChecking no"
+         ]
+      }
+   ],
+   "alias_includes":[
+      "/Users/amir/Documents/my_aliases.json"
+   ],
+   "plugins":[
+      "amazon",
+      "digitalocean"
+   ],
+   "allowed_filters":[
+
+   ],
+   "enabled_filters":[
+
+   ],
+   "force_regions":false,
+   "alias":{
+        "session":{
+         "accounts":[
+            "Sessions"
+         ],
+         "query":"(tag.type = Auth) AND (tag.environment = PRODUCTION)"
+        },
+   },
+   "auto_connect_on_one_result":true
+}
+```
+
+### Contributors
+
+// TOOD
+
