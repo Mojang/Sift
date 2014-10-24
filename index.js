@@ -10,24 +10,20 @@ if (config == null) {
   return
 }
 
-var list = function (val) {
-  return val.split(',')
-}
-
 commander
   .version(pjson.version)
-  .option('-r, --region <region>', 'Aws region', list)
-  .option('-a --account <account>', 'Account name', list)
-  .option('-t --type <type>', 'Type of account', list)
+  .option('-r, --region <region>', 'Aws region', util.list)
+  .option('-a --account <account>', 'Account name', util.list)
+  .option('-t --type <type>', 'Type of account', util.list)
   .option('-l --list_accounts', 'List accounts')
   .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
-  .option('-e --enable_filters <filter>', 'Enable specific filter(s)', list)
+  .option('-e --enable_filters <filter>', 'Enable specific filter(s)', util.list)
   .option('-q --query <query>', 'Query')
-  .option('-n --servername <name>', 'Search by name', list)
-  .option('-H --hostname <hostname>', 'Search by hostname', list)
-  .option('-i --image <image>', 'Search by image', list)
-  .option('-I --ip <ip>', 'Search by ip', list)
-  .option('--id <id>', 'Search by id', list)
+  .option('-n --servername <name>', 'Search by name', util.list)
+  .option('-H --hostname <hostname>', 'Search by hostname', util.list)
+  .option('-i --image <image>', 'Search by image', util.list)
+  .option('-I --ip <ip>', 'Search by ip', util.list)
+  .option('--id <id>', 'Search by id', util.list)
   .option('-k --keys <key>', 'List searchable keys for a cloud provider')
   .option('-u --user <user>', 'SSH user')
   .option('-p --port <port>', 'SSH port')
@@ -100,6 +96,7 @@ var gather_servers = function (accounts, regions, filters) {
       })
     })
   }
+  
   accounts.forEach(function (account) {
     if ((force_regions && commander.region) || (alias && alias.regions)) {
       account.regions = commander.region ? commander.region : alias.regions
@@ -273,15 +270,6 @@ var setup_filters = function (accounts, regions) {
   }
 }
 
-var defined_accounts = function (account) {
-  if (config.plugins.indexOf(account.type) > -1) {
-    return true
-  } else {
-    console.log('Unknown type %s - ignoring account %s'.red, account.type, account.name)
-    return false
-  }
-}
-
 var parse_arguments = function () {
   var regions = []
   var accounts = []
@@ -293,7 +281,7 @@ var parse_arguments = function () {
     accounts = config.credentials.filter(function (account) {
       return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token != null && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
     })
-    accounts = accounts.filter(defined_accounts)
+    accounts = accounts.filter(util.check_account_type)
     if (accounts.length < 1) {
       return console.log('No accounts found with this name or public token'.red)
     }
@@ -301,7 +289,7 @@ var parse_arguments = function () {
     if (config.credentials == null || config.credentials.length < 1) {
       return console.log('No accounts defined in config'.red)
     }
-    accounts = config.credentials.filter(defined_accounts)
+    accounts = config.credentials.filter(util.check_account_type)
   }
   if (commander.type) {
     var valid_types = []

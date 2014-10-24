@@ -1,6 +1,7 @@
 var path = require('path')
 var colors = require('colors')
 var fs = require('fs')
+var config
 
 var typesMatch = function (a, b) {
   return (typeof a === typeof b) && (Array.isArray(a) === Array.isArray(b))
@@ -11,26 +12,26 @@ var util = module.exports = {
 
   load_config: function () {
     var config_path = path.resolve(util.home, '.sift.json')
-    var config = require('./config')
+    var the_config = require('./config')
     var final_config = {};
     if (fs.existsSync(config_path)) {
       try {
         var user_config = require(config_path)
       } catch (e) {
-        console.log('Could not load user config, please correct the syntax of %s in your home directory'.red, config_path)
+        console.log('Could not load user configuration, please correct the syntax of %s in your home directory'.red, config_path)
         return null
       }
-      if (JSON.stringify(config) == JSON.stringify(user_config)) {
+      if (JSON.stringify(the_config) == JSON.stringify(user_config)) {
         console.log('Please update the default configuration in %s'.red, config_path)
         return null
       }
     } else {
-      fs.writeFileSync(config_path, JSON.stringify(config, null, 4), 'utf8')
+      fs.writeFileSync(config_path, JSON.stringify(the_config, null, 4), 'utf8')
       console.log('Please update the default configuration in %s'.red, config_path)
       return null
     }
 
-    final_config = util.merge(user_config, config)
+    final_config = util.merge(user_config, the_config)
 
     if (final_config.alias_includes && final_config.alias_includes.length > 0) {
       final_config.alias_includes.forEach(function (alias_include) {
@@ -48,6 +49,7 @@ var util = module.exports = {
       })
     }
 
+    config = final_config
     return final_config
   },
 
@@ -114,6 +116,19 @@ var util = module.exports = {
 
   starts_with: function (str, match) {
     return str.indexOf(match) == 0
+  },
+
+  list: function (val) {
+    return val.split(',')
+  },
+
+  check_account_type: function (account) {
+    if (config.plugins.indexOf(account.type) > -1) {
+      return true
+    } else {
+      console.log('Unknown type %s - ignoring account %s'.red, account.type, account.name)
+      return false
+    }
   },
 
   keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'type'],

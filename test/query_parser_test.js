@@ -158,6 +158,4 @@ describe('Query Parser', function () {
 		result.should.have.lengthOf(2)
 		done()
 	})
-
-
 })
