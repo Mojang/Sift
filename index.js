@@ -23,17 +23,18 @@ commander
   .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
   .option('-e --enable_filters <filter>', 'Enable specific filter(s)', list)
   .option('-q --query <query>', 'Query')
-  .option('-n --name <name>', 'Search by name', list)
+  .option('-n --servername <name>', 'Search by name', list)
   .option('-H --hostname <hostname>', 'Search by hostname', list)
   .option('-i --image <image>', 'Search by image', list)
   .option('-I --ip <ip>', 'Search by ip', list)
   .option('--id <id>', 'Search by id', list)
-  .option('-k --keys <type>', 'List searchable keys for a cloud provider', list)
+  .option('-k --keys <key>', 'List searchable keys for a cloud provider')
   .option('-u --user <user>', 'SSH user')
   .option('-p --port <port>', 'SSH port')
   .option('-c --ssh_command <ssh_command>', 'Command to execute')
   .option('-A --run_on_all', 'Execute on all found hosts')
   .parse(process.argv)
+
 
 var force_regions = commander.force_regions || config.force_regions
 
@@ -138,7 +139,7 @@ var gather_servers = function (accounts, regions, filters) {
           return console.log('No matching servers found'.red)
         }
 
-        if (commander.query || commander.region || commander.name || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters != null && filters.length > 0)) {
+        if (commander.query || commander.region || commander.servername || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters != null && filters.length > 0)) {
           try {
             var query = parser.generate_query_ast_sync(build_query(filters))
           } catch (err) {
@@ -178,8 +179,8 @@ var gather_servers = function (accounts, regions, filters) {
 var build_query = function (filters) {
   var query = ''
 
-  if (commander.name) {
-    query += build_query_part('name', commander.name, true)
+  if (commander.servername) {
+    query += build_query_part('name', commander.servername, true)
   }
 
   if (commander.region) {
@@ -421,13 +422,11 @@ if (commander.list_accounts) {
 }
 
 if (commander.keys) {
-  commander.keys.forEach(function (key) {
-    try {
-      console.log("Keys for %s: %s".white, colors.blue(key), require('./plugins/' + key).keys.join(", "))
-    } catch (err) {
-      console.error('Provided plugin \'%s\' does not exist'.red, key)
-    }
-  })
+  try {
+    console.log("Keys for %s: %s".white, colors.blue(commander.keys), require('./plugins/' + commander.keys).keys.join(", "))
+  } catch (err) {
+    console.error('Provided plugin \'%s\' does not exist'.red, commander.keys)
+  }
   return
 }
 
