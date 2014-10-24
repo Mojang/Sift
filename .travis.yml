@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - "0.10"
+notifications:
+  email:
+    recipients:
+      - david@mojang.com
+      - amir@mojang.com
+    on_success: change
+    on_failure: always

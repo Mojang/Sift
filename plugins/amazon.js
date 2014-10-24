@@ -1,8 +1,6 @@
 var aws = require('aws-sdk')
 var util = require('../util')
 var colors = require('colors')
-// Todo search by both internal and external dns/ip? private-dns-name, private-ip-address
-// Todo figure out how to do tags
 var amazon = module.exports = {
 
   search: function (account, callback) {
@@ -28,11 +26,14 @@ var amazon = module.exports = {
               'id': instance.InstanceId,
               'name': amazon.find_name(instance.Tags),
               'region': region,
-              // Todo show ipv6? command line argument?
               'hostname': instance.PublicDnsName ? instance.PublicDnsName : instance.PublicIpAddress,
               'account': account,
               'image': instance.ImageId,
-              'ip': instance.PublicIpAddress
+              'ip': instance.PublicIpAddress,
+              'keypair': instance.KeyName,
+              'private-hostname': instance.PrivateDnsName,
+              'private-ip': instance.PrivateIpAddress,
+              'type': instance.InstanceType
             }
             for (var i in instance.Tags) {
               var tag = instance.Tags[i]
@@ -83,5 +84,5 @@ var amazon = module.exports = {
 
   regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2'],
 
-  keys: util.keys
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'private-hostname', 'keypair', 'type']
 }

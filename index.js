@@ -52,10 +52,6 @@ var find_servers = function (account, callback) {
   })
 }
 
-var starts_with = function (str, match) {
-  return str.indexOf(match) == 0
-}
-
 var display_results = function (result) {
   var index = 0
   result.forEach(function (server) {
@@ -150,7 +146,6 @@ var gather_servers = function (accounts, regions, filters) {
           var result_count = result.length
           var new_result = []
           result.forEach(function (server) {
-            // Todo Come up with a better way to clone/disregard account than cloning object using json
             parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
               if (error) {
                 console.log('Error parsing %s'.red, error)
@@ -220,14 +215,12 @@ var build_query = function (filters) {
   }
 
   query = query.trim()
-  if (starts_with(query, 'AND')) {
+  if (util.starts_with(query, 'AND')) {
     query = query.substring(3)
   }
-  if (starts_with(query, 'OR')) {
+  if (util.starts_with(query, 'OR')) {
     query = query.substring(2)
   }
-
-  console.log(query)
 
   return query.trim()
 }
@@ -329,7 +322,6 @@ var parse_arguments = function () {
   setup_filters(accounts, regions)
 }
 
-//Todo ssh options, keypair, etc 
 var prepare_ssh = function (server, disable_tt) {
   if (config.ssh_config.length < 1) {
     return console.log('Please specify a default ssh config'.red)

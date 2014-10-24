@@ -71,20 +71,25 @@ var util = module.exports = {
 
   ssh: function (server, user, port, keyfile, options, command, disable_tt) {
     var default_args = [user + '@' + server.hostname]
+
     if (port) {
       default_args.unshift('-p', port)
     }
+
     if (keyfile) {
       default_args.unshift('-i', keyfile)
     }
+
     if (!disable_tt) {
       default_args.unshift('-tt')
     }
+
     var ssh_args = (options && options.length > 0) ? options.concat(default_args) : default_args;
+
     if (command) {
       ssh_args.push(command)
     }
-    console.log(ssh_args)
+
     if (!disable_tt) {
       require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
     } else {
@@ -107,7 +112,11 @@ var util = module.exports = {
     })
   },
 
-  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip'],
+  starts_with: function (str, match) {
+    return str.indexOf(match) == 0
+  },
+
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'type'],
 
   // https://github.com/remy/nodemon/blob/master/lib/utils/merge.js
   merge: function (one, two) {

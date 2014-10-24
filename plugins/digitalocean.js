@@ -1,7 +1,5 @@
 var nautical = require('nautical')
 var util = require('../util')
-// Todo figure out how to do ip-range/like?
-// Todo figure out how to do multiple values of same filter?
 var digitalOcean = module.exports = {
 
   search: function (account, callback) {
@@ -23,11 +21,11 @@ var digitalOcean = module.exports = {
             'id': server.id,
             'name': server.name,
             'region': server.region.slug,
-            // Todo show ipv6? command line argument?
             'hostname': server.networks.v4[0].ip_address,
             'account': account,
             'image': server.image.id,
-            'ip': server.networks.v4[0].ip_address
+            'ip': server.networks.v4[0].ip_address,
+            'type': server.size.slug
           })
         })
       }
@@ -35,7 +33,6 @@ var digitalOcean = module.exports = {
     })
   },
   
-  // Todo option to use DNS for connection?
   ssh: function (server, user, port, keyfile, options, command, disable_tt) {
     util.ssh(server, user, port, keyfile, options, command, disable_tt)
   },
