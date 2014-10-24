@@ -23,9 +23,11 @@ var instances = [ instance_1, instance_2]
 	
 var parser = require('../query_parser.js')	
 
-var match = function (ast) {
-	return instances.filter(function (cur) {
-	  return parser.match_sync(cur, ast)
+var match = function (ast, callback) {
+	instances.filter(function (cur) {
+	  parser.match(cur, ast, function (the_callback) {
+	  	callback(the_callback)
+	  })
 	})
 }
 
@@ -75,13 +77,40 @@ describe('Query Parser', function () {
 		done()
 	})
 
+	it('accepts different variations of (=)', function (done) {
+		var v1 = '(id = i-)'
+		var v2 = '(id == i-)'
+		var list = [v1, v2].map(function (el) { return parser.generate_query_ast_sync(el) })
+		list.every(is_the_same).should.be.true
+		done()
+	})
+
+	it('accepts different variations of (!=)', function (done) {
+		var v1 = '(id != i-)'
+		var v2 = '(id <> i-)'
+		var list = [v1, v2].map(function (el) { return parser.generate_query_ast_sync(el) })
+		list.every(is_the_same).should.be.true
+		done()
+	})
+
+	it('accepts different variations of (contains)', function (done) {
+		var v1 = '(id contains i-)'
+		var v2 = '(id Contains i-)'
+		var v3 = '(id CONTAINS i-)'
+		var list = [v1, v2, v3	].map(function (el) { return parser.generate_query_ast_sync(el) })
+		list.every(is_the_same).should.be.true
+		done()
+	})
+
 	it('accepts binary logic (and)', function (done) {
 		var query = '(id contains i-) and (ip contains 127)'
 		var ast = parser.generate_query_ast_sync(query)
-		var result = match(ast)
-		result[0].should.eql(instance_1)
-		result.should.have.lengthOf(1)
-		done()
+		match(ast, function (result) {
+			console.log(result)
+			result[0].should.eql(instance_1)
+			result.should.have.lengthOf(1)
+			done()
+		})
 	})
 
 })

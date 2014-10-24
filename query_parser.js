@@ -43,7 +43,7 @@ var grammar = {
     "equality" : [
       ["=", "$$ = '='"], 
       ["!=", "$$ = '!='"],
-      ["contains", "$$ = $1"]
+      ["contains", "$$ = 'contains'"]
     ]
   }
 }
