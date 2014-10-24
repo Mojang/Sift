@@ -23,11 +23,9 @@ var instances = [ instance_1, instance_2]
 	
 var parser = require('../query_parser.js')	
 
-var match = function (ast, callback) {
-	instances.filter(function (cur) {
-	  parser.match(cur, ast, function (the_callback) {
-	  	callback(the_callback)
-	  })
+var match = function (ast) {
+	return instances.filter(function (cur) {
+	  return parser.match_sync(cur, ast)
 	})
 }
 
@@ -105,12 +103,11 @@ describe('Query Parser', function () {
 	it('accepts binary logic (and)', function (done) {
 		var query = '(id contains i-) and (ip contains 127)'
 		var ast = parser.generate_query_ast_sync(query)
-		match(ast, function (result) {
-			console.log(result)
-			result[0].should.eql(instance_1)
-			result.should.have.lengthOf(1)
-			done()
-		})
+		var result = match(ast)
+		result.should.be.Array
+		result.should.have.lengthOf(1)
+		result[0].should.eql(instance_1)
+		done()
 	})
 
 })
