@@ -100,7 +100,7 @@ describe('Query Parser', function () {
 		done()
 	})
 
-	it('accepts binary logic (and)', function (done) {
+	it('accepts binary logic', function (done) {
 		var query = '(id contains i-) and (ip contains 127)'
 		var ast = parser.generate_query_ast_sync(query)
 		var result = match(ast)
@@ -109,5 +109,55 @@ describe('Query Parser', function () {
 		result[0].should.eql(instance_1)
 		done()
 	})
+
+	it('accepts unary logic', function (done) {
+		var query = '(not id contains i-) and (not ip contains 127)'
+		var ast = parser.generate_query_ast_sync(query)
+		var result = match(ast)
+		result.should.be.Array
+		result.should.have.lengthOf(0)
+		done()
+	})
+
+	it('accepts combined statements', function (done) {
+		var query = '((not id contains i-) and (not ip contains 127)) or (image contains ubun and type = PeoController)'
+		var ast = parser.generate_query_ast_sync(query)
+		var result = match(ast)
+		result.should.be.Array
+		result.should.have.lengthOf(1)
+		result[0].should.eql(instance_2)
+		done()
+	})
+
+	it('does not accept broken query', function (done) {
+		var query = '((not id contains i-) and (not ip contains 127)) or image contains ubun and type = PeoController)'
+		var ast = null
+		try {
+			ast = parser.generate_query_ast_sync(query)
+		} catch (err) {
+			ast = err
+		}
+		ast.should.be.Error
+		done()
+	})
+
+	it('accepts statements with valid redundant parantheses', function (done) {
+		var query = '(((not id contains i-)))'
+		var ast = parser.generate_query_ast_sync(query)
+		var result = match(ast)
+		result.should.be.Array
+		result.should.have.lengthOf(0)
+		done()
+	})
+
+	it('accepts statements whose value has whitespace in it', function (done) {
+		var query = 'name contains \'Controller - \''
+		var ast = parser.generate_query_ast_sync(query)
+		var result = match(ast)
+		result.should.be.Array
+		result.should.have.lengthOf(2)
+		done()
+	})
+
 
 })
