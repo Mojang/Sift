@@ -63,6 +63,18 @@ module.exports = {
     }
   },
 
+  match_sync: function (json_object, query_ast) {
+    if (json_object.account != null) {
+      delete json_object.account
+    }
+    try {
+      return evaluate(query_ast, json_object)
+    } catch (err) {
+      console.trace(err)
+      throw err
+    }
+  },
+
   generate_query_ast: function (query, callback) {
     try {
       callback(null, parser.parse(query))
