@@ -18,21 +18,19 @@ var icinga = module.exports = {
       try {
         response.body = JSON.parse(response.body)
       } catch (e) {
-        return console.log('Couldn\'t parse icinga json'.red)
+        return console.log('Something went wrong when checking icinga'.red)
       }
       
       if (response.body.status == null || response.body.status.service_status == null) {} else {
-        for(var service_status in response.body.status.service_status) {
-          var item = response.body.status.service_status[service_status];
+        response.body.status.service_status.forEach(function (item) {
           filters += ' OR hostname = ' + item.host_name
-        }
+        })
       }
 
       if (response.body.status == null || response.body.status.host_status == null) {} else {
-        for(var host_status in response.body.status.host_status) {
-          var item = response.body.status.host_status[host_status];
+        response.body.status.host_status.forEach(function (item) {
           filters += ' OR hostname = ' + item.host_name
-        }
+        })
       }
      
       filters = filters.trim()

@@ -116,7 +116,7 @@ var gather_servers = function (accounts, regions, filters) {
     }
     if (account.regions.length > 0) {
       todo.push(account)
-      console.log('Using %s account %s (%s)' + (account.publicToken ? ' - %s' : '').green, colors.blue(account.type), colors.green(account.name), colors.yellow(account.regions), account.publicToken ? colors.red(account.publicToken) : '')
+      console.log('Using %s account %s (%s)' + (account.public_token ? ' - %s' : '').green, colors.blue(account.type), colors.green(account.name), colors.yellow(account.regions), account.public_token ? colors.red(account.public_token) : '')
     }
   })
 
@@ -291,7 +291,7 @@ var parse_arguments = function () {
   if (commander.account || (alias && alias.accounts)) {
     var found = false
     accounts = config.credentials.filter(function (account) {
-      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.publicToken != null && util.contains_with_lowercase(account.publicToken.toLowerCase(), commander.account ? commander.account : alias.accounts))
+      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token != null && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
     })
     accounts = accounts.filter(defined_accounts)
     if (accounts.length < 1) {
@@ -339,7 +339,7 @@ var prepare_ssh = function (server, disable_tt) {
       }
     } else {
       var account_match = false
-      if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.publicToken != null && util.contains_with_lowercase(server.account.publicToken.toLowerCase(), the_config.accounts)))) {
+      if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.public_token != null && util.contains_with_lowercase(server.account.public_token.toLowerCase(), the_config.accounts)))) {
         account_match = true
       }
       if (the_config.query && the_config.query != '*') {
@@ -408,7 +408,7 @@ var ssh = function (server, ssh_config, disable_tt) {
 
 if (commander.list_accounts) {
   config.credentials.forEach(function (account) {
-    console.log('%s %s (%s)' + (account.publicToken ? ' - %s' : ''), account.name.green, account.type.blue, colors.yellow(account.regions), account.publicToken ? colors.red(account.publicToken) : '')
+    console.log('%s %s (%s)' + (account.public_token ? ' - %s' : ''), account.name.green, account.type.blue, colors.yellow(account.regions ? account.regions : require('./plugins/' + account.type).regions), account.public_token ? colors.red(account.public_token) : '')
   })
   return
 }

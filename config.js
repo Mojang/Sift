@@ -19,7 +19,7 @@ module.exports = exports = {
     type: 'digitalocean'
   }
   ],
-  plugins: ['amazon', 'digitalocean'],
+  plugins: ['amazon', 'digitalocean', 'local'],
   allowed_filters: ['icinga'],
   enabled_filters: [],
   force_regions: false,

@@ -35,10 +35,9 @@ var amazon = module.exports = {
               'private-ip': instance.PrivateIpAddress,
               'type': instance.InstanceType
             }
-            for (var i in instance.Tags) {
-              var tag = instance.Tags[i]
+            instance.Tags.forEach(function (tag) {
               current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
-            }
+            })
             result.push(current_instance)
           })
         })

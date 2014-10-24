@@ -103,7 +103,7 @@ var util = module.exports = {
   },
 
   display: function (server, index) {
-    console.log('(%s) %s - %s [%s] [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), colors.red(server.region), colors.cyan(server.id), colors.green(server.name), colors.yellow(server.hostname))
+    console.log('(%s) %s - %s' + (server.region ? ' [%s]' : '%s') + ' [%s] [%s] [%s]', (index), colors.green(server.account.name), colors.blue(server.account.type), server.region ? colors.red(server.region) : '', colors.cyan(server.id), colors.green(server.name), colors.yellow(server.hostname))
   },
 
   deduplicate_array: function (array) {

@@ -194,7 +194,7 @@ You can define your aliases in a separate file and include them in your config f
 
 ```javascript
 {
-    "alias_includes": ["/Users/amir/Documents/my\_aliases.json"]
+    "alias_includes": ["/Users/user/Documents/my\_aliases.json"]
 }
 ```
 
@@ -250,7 +250,7 @@ And `my_aliases.json` looks like this:
       }
    ],
    "alias_includes":[
-      "/Users/amir/Documents/my_aliases.json"
+      "/Users/user/Documents/my_aliases.json"
    ],
    "plugins":[
       "amazon",
@@ -276,6 +276,10 @@ And `my_aliases.json` looks like this:
 ```
 
 ### Contributors
+* [Amir Moulavi](https://twitter.com/mamirm)
+* [David Marby](http://dmarby.se)
 
-// TOOD
+### License
+[MIT](https://github.com/Mojang/Sift/blob/master/LICENSE.md)
 
+// TODO
