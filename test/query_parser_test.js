@@ -5,7 +5,7 @@ var instance_1 = {
     'id' : 'i-12334',
     'ip' : '127.0.0.1',
     'image' : 'ubuntu-14.04-kernel',
-    'type' : 'McoController',
+    'tag.type' : 'McoController',
     'tag.environment' : 'PRODUCTION'
 }
 
@@ -14,7 +14,7 @@ var instance_2 = {
 	'id' : 'i-66666',
 	'ip' : '54.54.0.1',
 	'image' : 'ubuntu-12.10-kernel',
-	'type' : 'PeoController',
+	'tag.type' : 'PeoController',
 	'tag.environment' : 'PRODUCTION'
 }
 
@@ -120,7 +120,7 @@ describe('Query Parser', function () {
 	})
 
 	it('accepts combined statements', function (done) {
-		var query = '((not id contains i-) and (not ip contains 127)) or (image contains ubun and type = PeoController)'
+		var query = '((not id contains i-) and (not ip contains 127)) or (image contains ubun and tag.type = PeoController)'
 		var ast = parser.generate_query_ast_sync(query)
 		var result = match(ast)
 		result.should.be.Array
@@ -130,7 +130,7 @@ describe('Query Parser', function () {
 	})
 
 	it('does not accept broken query', function (done) {
-		var query = '((not id contains i-) and (not ip contains 127)) or image contains ubun and type = PeoController)'
+		var query = '((not id contains i-) and (not ip contains 127)) or image contains ubun and tag.type = PeoController)'
 		var ast = null
 		try {
 			ast = parser.generate_query_ast_sync(query)
