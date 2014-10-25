@@ -135,7 +135,13 @@ var evaluate_inequality = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
   if (expression[key] != null) {
-    return (typeof expression[key] === "string" ? (expression[key].toLowerCase() != value) : (expression[key] != value))
+    if (typeof expression[key] === "object") {
+      return expression[key].every(function (element, index, array) {
+        return (typeof element === "string" ? (element.toLowerCase() != value) : (element != value))
+      })
+    } else {
+      return (typeof expression[key] === "string" ? (expression[key].toLowerCase() != value) : (expression[key] != value))
+    }
   } else {
     return true
   }
@@ -145,7 +151,13 @@ var evaluate_equality = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
   if (expression[key] != null) {
-    return (typeof expression[key] === "string" ? (expression[key].toLowerCase() == value) : (expression[key] == value))
+    if (typeof expression[key] === "object") {
+      return expression[key].some(function (element, index, array) {
+        return (typeof element === "string" ? (element.toLowerCase() == value) : (element == value))
+      })
+    } else {
+      return (typeof expression[key] === "string" ? (expression[key].toLowerCase() == value) : (expression[key] == value))
+    }
   } else {
     return false
   }
@@ -155,7 +167,13 @@ var evaluate_contains = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
   if (expression[key] != null) {
-    return (typeof expression[key] === "string" ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
+    if (typeof expression[key] === "object") {
+      return expression[key].some(function (element, index, array) {
+        return (typeof element === "string" ? (element.toLowerCase().indexOf(value) > -1) : (element.indexOf(value) > -1))
+      })
+    } else {
+      return (typeof expression[key] === "string" ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
+    }
   } else {
     return false
   }

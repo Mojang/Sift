@@ -38,6 +38,11 @@ var amazon = module.exports = {
             instance.Tags.forEach(function (tag) {
               current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
             })
+            current_instance['security-group'] = []
+            instance.SecurityGroups.forEach(function (sec) {
+              current_instance['security-group'].push(sec.GroupId)
+              current_instance['security-group'].push(sec.GroupName)
+            })
             result.push(current_instance)
           })
         })
@@ -83,5 +88,5 @@ var amazon = module.exports = {
 
   regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2'],
 
-  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'private-hostname', 'keypair', 'type']
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'private-hostname', 'keypair', 'type', 'security-group']
 }

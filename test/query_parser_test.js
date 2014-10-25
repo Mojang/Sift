@@ -6,7 +6,8 @@ var instance_1 = {
     'ip' : '127.0.0.1',
     'image' : 'ubuntu-14.04-kernel',
     'tag.type' : 'McoController',
-    'tag.environment' : 'PRODUCTION'
+    'tag.environment' : 'PRODUCTION',
+    'security-group' : ['McoController', 'sg-2223jf34', 'default', 'sg-343ffgh']
 }
 
 var instance_2 = {
@@ -15,7 +16,8 @@ var instance_2 = {
 	'ip' : '54.54.0.1',
 	'image' : 'ubuntu-12.10-kernel',
 	'tag.type' : 'PeoController',
-	'tag.environment' : 'PRODUCTION'
+	'tag.environment' : 'PRODUCTION',
+    'security-group' : ['PeoController', 'sg-666jf34', 'default', 'sg-123frgh']
 }
 
 
@@ -152,6 +154,15 @@ describe('Query Parser', function () {
 
 	it('accepts statements whose value has whitespace in it', function (done) {
 		var query = 'name contains \'Controller - \''
+		var ast = parser.generate_query_ast_sync(query)
+		var result = match(ast)
+		result.should.be.Array
+		result.should.have.lengthOf(2)
+		done()
+	})
+
+	it('accepts logical statements for expressions that has array of values', function (done) {
+		var query = 'security-group contains controller'
 		var ast = parser.generate_query_ast_sync(query)
 		var result = match(ast)
 		result.should.be.Array
