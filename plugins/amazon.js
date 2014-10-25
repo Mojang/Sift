@@ -33,7 +33,8 @@ var amazon = module.exports = {
               'keypair': instance.KeyName,
               'private-hostname': instance.PrivateDnsName,
               'private-ip': instance.PrivateIpAddress,
-              'type': instance.InstanceType
+              'type': instance.InstanceType,
+              'availability-zone': instance.Placement.AvailabilityZone
             }
             instance.Tags.forEach(function (tag) {
               current_instance['tag.' + tag.Key.toLowerCase()] = tag.Value
@@ -88,5 +89,5 @@ var amazon = module.exports = {
 
   regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2'],
 
-  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'private-hostname', 'keypair', 'type', 'security-group']
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'private-hostname', 'keypair', 'type', 'security-group', 'availability-zone']
 }
