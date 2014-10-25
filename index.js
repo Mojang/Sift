@@ -27,6 +27,7 @@ commander
   .option('-k --keys <key>', 'List searchable keys for a cloud provider')
   .option('-u --user <user>', 'SSH user')
   .option('-p --port <port>', 'SSH port')
+  .option('-K --keyfile <keyfile>', 'SSH keyfile')
   .option('-c --ssh_command <ssh_command>', 'Command to execute')
   .option('-A --run_on_all', 'Execute on all found hosts')
   .parse(process.argv)
@@ -374,18 +375,25 @@ var prepare_ssh = function (server, disable_tt) {
 var ssh = function (server, ssh_config, disable_tt) {
     // Todo Merge default conf with ssh config, config option?
     if (ssh_config) {
-      if (commander.port) {
-        ssh_config.port = commander.port
-      }
       if (commander.user) {
         ssh_config.user = commander.user
       }
+
+      if (commander.port) {
+        ssh_config.port = commander.port
+      }
+
+      if (commander.keyfile) {
+        ssh_config.keyfile = commander.keyfile
+      }
+      
       if (alias && alias.command) {
         ssh_config.command = alias.command
       }
       if (commander.ssh_command) {
         ssh_config.command = commander.ssh_command
       }
+
       ssh_config.port = ssh_config.port ? ssh_config.port : 22
       ssh_config.user = ssh_config.user ? ssh_config.user : 'root'
       require('./plugins/' + server.account.type).ssh(server, ssh_config.user, ssh_config.port, ssh_config.keyfile, (ssh_config.options != null && ssh_config.options.length > 0) ? ssh_config.options : [], ssh_config.command, disable_tt)
@@ -405,7 +413,7 @@ if (commander.keys) {
   try {
     console.log("Keys for %s: %s".white, colors.blue(commander.keys), require('./plugins/' + commander.keys).keys.join(", "))
   } catch (err) {
-    console.error('Provided plugin \'%s\' does not exist'.red, commander.keys)
+    console.error('Provided type \'%s\' does not exist'.red, commander.keys)
   }
   return
 }

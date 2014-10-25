@@ -19,12 +19,12 @@ var amazon = module.exports = {
     aws.config.update({ accessKeyId: account.public_token, secretAccessKey: account.token })
     var todo = account.regions.length;
     account.regions.forEach(function (region) {
-      amazon.search_region(region, params, function (servers) {
+      search_region(region, params, function (servers) {
         servers.forEach(function (server) {
           server.Instances.forEach(function (instance) {
             var current_instance = {
               'id': instance.InstanceId,
-              'name': amazon.find_name(instance.Tags),
+              'name': find_name(instance.Tags),
               'region': region,
               'hostname': instance.PublicDnsName ? instance.PublicDnsName : instance.PublicIpAddress,
               'account': account,
@@ -55,30 +55,6 @@ var amazon = module.exports = {
     })
   },
 
-  search_region: function (region, params, callback) {
-    var ec2 = new aws.EC2({ region: region })
-    // Todo, check for NextToken and use for pagination, in case of more than 1k servers
-    // this.hasNextPage(), this.nextPage(callback)
-    // Todo, error handling
-    ec2.describeInstances(params, function(err, data) {
-      if (err) {
-        console.log('Something went wrong when searching Amazon: %s'.red, err)
-        return callback([])
-      }
-      if (data.NextToken) {
-        console.log('NextToken found, more servers available')
-      }
-      callback(data.Reservations)
-    })
-  },
-
-  find_name: function (tags) {
-    var result = tags.filter(function (element) {
-      return element.Key == 'Name'
-    })
-    return result[0].Value
-  },
-
   ssh: function (server, user, port, keyfile, options, command, disable_tt) {
     util.ssh(server, user, port, keyfile, options, command, disable_tt)
   },
@@ -90,4 +66,28 @@ var amazon = module.exports = {
   regions: ['ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'eu-west-1', 'sa-east-1', 'us-east-1', 'us-west-1', 'us-west-2'],
 
   keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'private-hostname', 'keypair', 'type', 'security-group', 'availability-zone']
+}
+
+var search_region = function (region, params, callback) {
+  var ec2 = new aws.EC2({ region: region })
+  // Todo, check for NextToken and use for pagination, in case of more than 1k servers
+  // this.hasNextPage(), this.nextPage(callback)
+  // Todo, error handling
+  ec2.describeInstances(params, function(err, data) {
+    if (err) {
+      console.log('Something went wrong when searching Amazon: %s'.red, err)
+      return callback([])
+    }
+    if (data.NextToken) {
+      console.log('NextToken found, more servers available')
+    }
+    callback(data.Reservations)
+  })
+}
+
+var find_name = function (tags) {
+  var result = tags.filter(function (element) {
+    return element.Key == 'Name'
+  })
+  return result[0].Value
 }
