@@ -17,7 +17,7 @@ var icinga = module.exports = {
     }).as.json(function (response) {
       try {
         response.body = JSON.parse(response.body)
-      } catch (e) {
+      } catch (error) {
         return console.log('Something went wrong when checking icinga'.red)
       }
       
@@ -36,7 +36,7 @@ var icinga = module.exports = {
       filters = filters.trim()
       filters = filters.substring(2)
      
-      if (filters.length == 0) {
+      if (!filters.length) {
         console.log('No hosts are down, ignoring icinga filter'.red)
       }
      

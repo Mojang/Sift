@@ -14,13 +14,15 @@ var util = module.exports = {
     var config_path = path.resolve(util.home, '.sift.json')
     var the_config = require('./config')
     var final_config = {};
+    
     if (fs.existsSync(config_path)) {
       try {
         var user_config = require(config_path)
-      } catch (e) {
+      } catch (error) {
         console.log('Could not load user configuration, please correct the syntax of %s in your home directory'.red, config_path)
         return null
       }
+
       if (JSON.stringify(the_config) == JSON.stringify(user_config)) {
         console.log('Please update the default configuration in %s'.red, config_path)
         return null
@@ -33,12 +35,12 @@ var util = module.exports = {
 
     final_config = util.merge(user_config, the_config)
 
-    if (final_config.alias_includes && final_config.alias_includes.length > 0) {
+    if (final_config.alias_includes && final_config.alias_includes.length) {
       final_config.alias_includes.forEach(function (alias_include) {
         try {
           var alias_file = fs.readFileSync(alias_include, 'utf-8')
           var json = JSON.parse(alias_file)
-        } catch (e) {
+        } catch (error) {
           return console.log('Error reading %s, invalid syntax?'.red, alias_include)
         }   
         Object.keys(json).forEach(function (key) {
@@ -86,7 +88,7 @@ var util = module.exports = {
       default_args.unshift('-tt')
     }
 
-    var ssh_args = (options && options.length > 0) ? options.concat(default_args) : default_args;
+    var ssh_args = (options && options.length) ? options.concat(default_args) : default_args;
 
     if (command) {
       ssh_args.push(command)
@@ -96,9 +98,11 @@ var util = module.exports = {
       require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
     } else {
       var child = require('child_process').spawn('ssh', ssh_args)
+
       var output = function (data) {
         console.log(colors[disable_tt](data.toString().replace(/\n$/, '')))
       }
+
       child.stdout.on('data', output)
       child.stderr.on('data', output)
     }
@@ -132,6 +136,8 @@ var util = module.exports = {
   },
 
   keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'type'],
+
+  colors: ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'],
 
   // https://github.com/remy/nodemon/blob/master/lib/utils/merge.js
   merge: function (one, two) {

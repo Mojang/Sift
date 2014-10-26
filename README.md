@@ -64,7 +64,7 @@ sudo npm link
             "name": "Sessions",
             "publicToken": "XXXXXXXXXXXXXXXXXXX",
             "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        	"type": "amazon"
+            "type": "amazon"
         },
         {
             "name": "Main",

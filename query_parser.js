@@ -57,9 +57,9 @@ module.exports = {
     }
     try {
       callback(null, evaluate(query_ast, json_object))
-    } catch (err) {
-      console.trace(err)
-      callback(err)
+    } catch (error) {
+      console.trace(error)
+      callback(error)
     }
   },
 
@@ -69,8 +69,8 @@ module.exports = {
     }
     try {
       return evaluate(query_ast, json_object)
-    } catch (err) {
-      console.trace(err)
+    } catch (error) {
+      console.trace(error)
       throw err
     }
   },
@@ -78,8 +78,8 @@ module.exports = {
   generate_query_ast: function (query, callback) {
     try {
       callback(null, parser.parse(query))
-    } catch (err) {
-      callback(err)
+    } catch (error) {
+      callback(error)
     }
   },
 
