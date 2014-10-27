@@ -51,43 +51,99 @@ if (commander.args.length > 0) {
   }
 }
 
-var display_results = function (result) {
-  var color_index = 0
-  var index = 0
+var parse_arguments = function () {
+  var regions = []
+  var accounts = []
 
-  result.forEach(function (server) {
-    require('./plugins/' + server.account.type).display(server, index+++1)
-  })
-
-  if (result.length == 1 && config.auto_connect_on_one_result) {
-    return prepare_ssh(result[0])
+  if (commander.region) {
+    regions = commander.region
   }
 
-  if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
-    return result.forEach(function (server) {
-      prepare_ssh(server, util.colors[color_index++])
+  if (commander.account || (alias && alias.accounts)) {
+    var found = false
 
-      if (color_index > (util.colors.length - 1)) {
-        color_index = 0
+    accounts = config.credentials.filter(function (account) {
+      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token != null && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
+    })
+
+    accounts = accounts.filter(util.check_account_type)
+
+    if (!accounts.length) {
+      return console.log('No accounts found with this name or public token'.red)
+    }
+  } else {
+    if (config.credentials == null || !config.credentials.length) {
+      return console.log('No accounts defined in config'.red)
+    }
+
+    accounts = config.credentials.filter(util.check_account_type)
+  }
+
+  if (commander.type) {
+    var valid_types = []
+
+    commander.type.forEach(function (type) {
+      if (!(config.plugins.indexOf(type.toLowerCase()) > -1)) {
+        console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
+      } else {
+        valid_types.push(type.toLowerCase())
       }
+    })
+
+    accounts = accounts.filter(function (account) {
+      return util.contains(account.type.toLowerCase(), valid_types)
     })
   }
 
-  var reader = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  })
+  if (!accounts.length) {
+    return console.log('No valid accounts found'.red)
+  }
 
-  reader.question("Which server do you want to connect to? ", function (index) {
-    var server = result[index - 1]
-    reader.close()
+  setup_filters(accounts, regions)
+}
 
-    if (!server) {
-      return console.log('Invalid selection'.red)
+var setup_filters = function (accounts, regions) {
+  var filters = ''
+  var filter_list = []
+
+  if (commander.enable_filters || (config.enabled_filters != null && config.enabled_filters.length)) {
+    already_gathered = true
+    if (commander.enable_filters) {
+      filter_list = filter_list.concat(commander.enable_filters.filter(function (filter) {
+        if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
+          return true
+        } else {
+          console.log('Ignoring invalid/disallowed filter %s'.red, filter)
+          return false
+        }
+      }))
     }
 
-    prepare_ssh(server)
-  })
+    if (config.enabled_filters != null && config.enabled_filters.length) {
+      filter_list = filter_list.concat(config.enabled_filters)
+    }
+
+    filter_list = util.deduplicate_array(filter_list)
+
+    async.each(filter_list, function (filter, next) {
+      try {
+        require('./plugins/' + filter.toLowerCase()).filter(config, function (filter) {
+          filters += filter
+          next()
+        })
+      } catch (error) {
+        next(error)
+      }
+    }, function (error) {
+      if (error) {
+        console.log('Something went wrong while setting up filters: %s'.red, error)
+      }
+
+      gather_servers(accounts, regions, filters.trim())  
+    })
+  } else {
+    gather_servers(accounts, regions, filters)
+  }
 }
 
 var gather_servers = function (accounts, regions, filters) {
@@ -247,99 +303,43 @@ var build_query_part = function (key_name, key, with_contains) {
   return query
 }
 
-var setup_filters = function (accounts, regions) {
-  var filters = ''
-  var filter_list = []
+var display_results = function (result) {
+  var color_index = 0
+  var index = 0
 
-  if (commander.enable_filters || (config.enabled_filters != null && config.enabled_filters.length)) {
-    already_gathered = true
-    if (commander.enable_filters) {
-      filter_list = filter_list.concat(commander.enable_filters.filter(function (filter) {
-        if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
-          return true
-        } else {
-          console.log('Ignoring invalid/disallowed filter %s'.red, filter)
-          return false
-        }
-      }))
-    }
+  result.forEach(function (server) {
+    require('./plugins/' + server.account.type).display(server, index+++1)
+  })
 
-    if (config.enabled_filters != null && config.enabled_filters.length) {
-      filter_list = filter_list.concat(config.enabled_filters)
-    }
-
-    filter_list = util.deduplicate_array(filter_list)
-
-    async.each(filter_list, function (filter, next) {
-      try {
-        require('./plugins/' + filter.toLowerCase()).filter(config, function (filter) {
-          filters += filter
-          next()
-        })
-      } catch (error) {
-        next(error)
-      }
-    }, function (error) {
-      if (error) {
-        console.log('Something went wrong while setting up filters: %s'.red, error)
-      }
-
-      gather_servers(accounts, regions, filters.trim())  
-    })
-  } else {
-    gather_servers(accounts, regions, filters)
-  }
-}
-
-var parse_arguments = function () {
-  var regions = []
-  var accounts = []
-
-  if (commander.region) {
-    regions = commander.region
+  if (result.length == 1 && config.auto_connect_on_one_result) {
+    return prepare_ssh(result[0])
   }
 
-  if (commander.account || (alias && alias.accounts)) {
-    var found = false
+  if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
+    return result.forEach(function (server) {
+      prepare_ssh(server, util.colors[color_index++])
 
-    accounts = config.credentials.filter(function (account) {
-      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token != null && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
-    })
-
-    accounts = accounts.filter(util.check_account_type)
-
-    if (!accounts.length) {
-      return console.log('No accounts found with this name or public token'.red)
-    }
-  } else {
-    if (config.credentials == null || !config.credentials.length) {
-      return console.log('No accounts defined in config'.red)
-    }
-
-    accounts = config.credentials.filter(util.check_account_type)
-  }
-
-  if (commander.type) {
-    var valid_types = []
-
-    commander.type.forEach(function (type) {
-      if (!(config.plugins.indexOf(type.toLowerCase()) > -1)) {
-        console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
-      } else {
-        valid_types.push(type.toLowerCase())
+      if (color_index > (util.colors.length - 1)) {
+        color_index = 0
       }
     })
-
-    accounts = accounts.filter(function (account) {
-      return util.contains(account.type.toLowerCase(), valid_types)
-    })
   }
 
-  if (!accounts.length) {
-    return console.log('No valid accounts found'.red)
-  }
+  var reader = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
 
-  setup_filters(accounts, regions)
+  reader.question("Which server do you want to connect to? ", function (index) {
+    var server = result[index - 1]
+    reader.close()
+
+    if (!server) {
+      return console.log('Invalid selection'.red)
+    }
+
+    prepare_ssh(server)
+  })
 }
 
 var prepare_ssh = function (server, disable_tt) {
@@ -435,6 +435,8 @@ var ssh = function (server, ssh_config, disable_tt) {
 
   console.log('No matching ssh config, please specify a default ssh config'.red)
 }
+
+// Commands
 
 if (commander.list_accounts) {
   config.credentials.forEach(function (account) {
