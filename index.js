@@ -7,6 +7,7 @@ var parser = require('./query_parser')
 var pjson = require('./package.json')
 var async = require('async')
 var readline = require('readline')
+
 var config = util.load_config()
 if (config == null) {
   return
@@ -14,26 +15,31 @@ if (config == null) {
 
 commander
   .version(pjson.version)
+  // Actions
+  .option('-l, --list_accounts', 'List accounts')
+  .option('-k, --keys <key>', 'List searchable keys for a cloud provider')
+  // Filters
   .option('-r, --region <region>', 'Aws region', util.list)
-  .option('-a --account <account>', 'Account name', util.list)
-  .option('-t --type <type>', 'Type of account', util.list)
-  .option('-l --list_accounts', 'List accounts')
-  .option('-f --force_regions', 'Use specified region for all accounts regardless of configured regions')
-  .option('-e --enable_filters <filter>', 'Enable specific filter(s)', util.list)
-  .option('-q --query <query>', 'Query')
-  .option('-n --servername <name>', 'Search by name', util.list)
-  .option('-H --hostname <hostname>', 'Search by hostname', util.list)
-  .option('-i --image <image>', 'Search by image', util.list)
-  .option('-I --ip <ip>', 'Search by ip', util.list)
+  .option('-a, --account <account>', 'Account name', util.list)
+  .option('-t, --type <type>', 'Type of account', util.list)
+  // Query shortcuts
+  .option('-n, --servername <name>', 'Search by name', util.list)
+  .option('-H, --hostname <hostname>', 'Search by hostname', util.list)
+  .option('-i, --image <image>', 'Search by image', util.list)
+  .option('-I, --ip <ip>', 'Search by ip', util.list)
   .option('--id <id>', 'Search by id', util.list)
-  .option('-k --keys <key>', 'List searchable keys for a cloud provider')
-  .option('-u --user <user>', 'SSH user')
-  .option('-p --port <port>', 'SSH port')
-  .option('-K --keyfile <keyfile>', 'SSH keyfile')
-  .option('-c --ssh_command <ssh_command>', 'Command to execute')
-  .option('-A --run_on_all', 'Execute on all found hosts')
+  //Misc
+  .option('-q, --query <query>', 'Query')
+  .option('-e, --enable_filters <filter>', 'Enable specific filter(s)', util.list)
+  // SSH options
+  .option('-u, --user <user>', 'SSH user')
+  .option('-p, --port <port>', 'SSH port')
+  .option('-K, --keyfile <keyfile>', 'SSH keyfile')
+  .option('-c, --ssh_command <ssh_command>', 'Command to execute')
+  // Boolean options
+  .option('-A, --run_on_all', 'Execute on all found hosts')
+  .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')
   .parse(process.argv)
-
 
 var force_regions = commander.force_regions || config.force_regions
 
@@ -43,12 +49,6 @@ if (commander.args.length > 0) {
   if (config.alias[commander.args.join(' ')] != null) {
     alias = config.alias[commander.args.join(' ')]
   }
-}
-
-var find_servers = function (account, callback) {
-  require('./plugins/' + account.type).search(account, function (servers) {
-    callback(servers)
-  })
 }
 
 var display_results = function (result) {
@@ -135,7 +135,7 @@ var gather_servers = function (accounts, regions, filters) {
   }
 
   async.concat(accounts_to_use, function (account, next) {
-    find_servers(account, function callback (servers) {
+    util.find_servers(account, function callback (servers) {
       next(null, servers)
     })
   }, function (err, servers) {
@@ -403,7 +403,7 @@ var prepare_ssh = function (server, disable_tt) {
 }
 
 var ssh = function (server, ssh_config, disable_tt) {
-  // Todo Merge default conf with ssh config, config option?
+  // TODO Merge default conf with ssh config, config option?
   if (ssh_config) {
     if (commander.user) {
       ssh_config.user = commander.user

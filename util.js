@@ -135,6 +135,12 @@ var util = module.exports = {
     }
   },
 
+  find_servers: function (account, callback) {
+    require('./plugins/' + account.type).search(account, function (servers) {
+      callback(servers)
+    })
+  },
+
   keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'type'],
 
   colors: ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'],
