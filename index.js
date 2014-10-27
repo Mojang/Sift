@@ -25,8 +25,8 @@ commander
   // Query shortcuts
   .option('-n, --servername <name>', 'Search by name', util.list)
   .option('-H, --hostname <hostname>', 'Search by hostname', util.list)
-  .option('-i, --image <image>', 'Search by image', util.list)
-  .option('-I, --ip <ip>', 'Search by ip', util.list)
+  .option('-i, --ip <ip>', 'Search by ip', util.list)
+  .option('-I, --image <image>', 'Search by image', util.list)
   .option('--id <id>', 'Search by id', util.list)
   //Misc
   .option('-q, --query <query>', 'Query')
