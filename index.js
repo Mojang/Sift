@@ -315,7 +315,7 @@ var display_results = function (result) {
     return prepare_ssh(result[0])
   }
 
-  if (((alias && alias.run_on_all) || commander.run_on_all) && (alias.command || commander.ssh_command)) {
+  if (((alias && alias.run_on_all) || commander.run_on_all) && ((alias && alias.command) || commander.ssh_command)) {
     return result.forEach(function (server) {
       prepare_ssh(server, util.colors[color_index++])
 
