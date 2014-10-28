@@ -51,8 +51,6 @@ sudo npm link
 
 ## How to run
 
-// TODO
-
 ### Sample `.sift.json` file
 
 `.sift.json` file is created in your home directory the first time you run `sift`. You can then edit the file to add more options to it!
@@ -280,6 +278,4 @@ And `my_aliases.json` looks like this:
 * [David Marby](http://dmarby.se)
 
 ### License
-[MIT](https://github.com/Mojang/Sift/blob/master/LICENSE.md)
-
-// TODO
+Distributed under the [MIT License](https://github.com/Mojang/Sift/blob/master/LICENSE.md)
