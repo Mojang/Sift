@@ -45,7 +45,7 @@ If you need the latest features (could be unstable) you can build from source by
 ```bash
 git clone git@github.com:Mojang/Sift.git
 cd Sift
-sudo npm install
+npm install
 sudo npm link
 ```
 
