@@ -152,6 +152,20 @@ Supported verbs you can use in your key value statements:
 - `=`, `==`
 
 
+### Running commands
+
+You can run shell commands on one or many instances that matched your query:
+
+```bash
+$ sift -q 'name contains session' -c 'uptime'
+```
+
+This commands only be executed on the instance you select but if you want to execute the command on all matching instances you can use `-A` like this:
+
+```bash
+$ sift -q 'name contains session' -c 'uptime' -A
+```
+
 ### Defining Aliases
 
 If you're running some queries every day you can define alias for them so you don't type them out every time you need them. You can use the key `alias` in your config file to define a list of aliases:
