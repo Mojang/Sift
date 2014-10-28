@@ -232,27 +232,27 @@ var build_query = function (filters) {
   var query = ''
 
   if (commander.servername) {
-    query += build_query_part('name', commander.servername, true)
+    query += build_query_part('name', commander.servername)
   }
 
   if (commander.region) {
-    query += build_query_part('region', commander.region, true)
+    query += build_query_part('region', commander.region)
   }
 
   if (commander.hostname) {
-    query += build_query_part('hostname', commander.hostname, true)
+    query += build_query_part('hostname', commander.hostname)
   }
 
   if (commander.image) {
-    query += build_query_part('image', commander.image, true)
+    query += build_query_part('image', commander.image)
   }
 
   if (commander.ip) {
-    query += build_query_part('ip', commander.ip, true)
+    query += build_query_part('ip', commander.ip)
   }
 
   if (commander.id) {
-    query += build_query_part('id', commander.id, true)
+    query += build_query_part('id', commander.id)
   }
 
   if (filters) {
@@ -284,14 +284,14 @@ var build_query = function (filters) {
   return query.trim()
 }
 
-var build_query_part = function (key_name, key, with_contains) {
+var build_query_part = function (key_name, key) {
   var query = ' AND ('
   var split_count = key.length
 
   key.forEach(function (split) {
     split_count--
 
-    query += key_name + ' ' + (with_contains ? 'CONTAINS' : '=') + ' \'' + split + '\''
+    query += key_name + ' CONTAINS' + ' \'' + split + '\''
 
     if (split_count) {
       query += ' OR '
