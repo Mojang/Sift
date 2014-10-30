@@ -3,7 +3,7 @@ var local = module.exports = {
   
   search: function (account, callback) {
     var result = []
-    if (account.local_files == null || account.local_files.length < 1) {
+    if (!account.local_files || account.local_files.length < 1 || !(account.local_files instanceof Array)) {
       return console.log('Please define a list of local files as local_files for the account.'.red)
     }
 
@@ -17,11 +17,11 @@ var local = module.exports = {
       data.forEach(function (server) {
         var result_server = { account: account }
         Object.keys(server).forEach(function (key) {
-          if (result_server[key] == null) {
+          if (!result_server[key]) {
             result_server[key] = server[key]
           }
         })
-        if (result_server.id == null || result_server.name == null || result_server.hostname == null) {
+        if (!result_server.id || !result_server.name || !result_server.hostname) {
           console.log('Skipping server %s because id/name/hostname is missing!'.red, JSON.stringify(server))
         } else {
           result.push(result_server)

@@ -1,11 +1,10 @@
-var colors = require('colors')
 var unirest = require('unirest')
 var util = require('../util')
 var icinga = module.exports = {
 
   filter: function(config, callback) {
     var filters = ''
-    if (config.icinga_host == null || config.icinga_user == null || config.icinga_pass == null) {
+    if (!config.icinga_host || !config.icinga_user || !config.icinga_pass) {
       console.log('Please define icinga_host, icinga_user & icinga_pass in the config'.red);
       return callback('')
     }
@@ -21,13 +20,13 @@ var icinga = module.exports = {
         return console.log('Something went wrong when checking icinga'.red)
       }
       
-      if (response.body.status == null || response.body.status.service_status == null) {} else {
+      if (!response.body.status || !response.body.status.service_status) {} else {
         response.body.status.service_status.forEach(function (item) {
           filters += ' OR hostname = ' + item.host_name
         })
       }
 
-      if (response.body.status == null || response.body.status.host_status == null) {} else {
+      if (!response.body.status || !response.body.status.host_status) {} else {
         response.body.status.host_status.forEach(function (item) {
           filters += ' OR hostname = ' + item.host_name
         })

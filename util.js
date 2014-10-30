@@ -11,13 +11,14 @@ var util = module.exports = {
   home: process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE,
 
   load_config: function () {
+    var user_config
     var config_path = path.resolve(util.home, '.sift.json')
     var the_config = require('./config')
     var final_config = {};
     
     if (fs.existsSync(config_path)) {
       try {
-        var user_config = require(config_path)
+        user_config = require(config_path)
       } catch (error) {
         console.log('Could not load user configuration, please correct the syntax of %s in your home directory'.red, config_path)
         return null
@@ -35,16 +36,18 @@ var util = module.exports = {
 
     final_config = util.merge(user_config, the_config)
 
+    var json
+
     if (final_config.alias_includes && final_config.alias_includes.length) {
       final_config.alias_includes.forEach(function (alias_include) {
         try {
           var alias_file = fs.readFileSync(alias_include, 'utf-8')
-          var json = JSON.parse(alias_file)
+          json = JSON.parse(alias_file)
         } catch (error) {
           return console.log('Error reading %s, invalid syntax?'.red, alias_include)
         }   
         Object.keys(json).forEach(function (key) {
-          if (final_config.alias[key] == null) {
+          if (!final_config.alias[key]) {
             final_config.alias[key] = json[key]
           }
         })
@@ -119,7 +122,7 @@ var util = module.exports = {
   },
 
   starts_with: function (str, match) {
-    return str.indexOf(match) == 0
+    return str.indexOf(match) === 0
   },
 
   list: function (val) {

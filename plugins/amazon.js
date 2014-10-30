@@ -1,6 +1,5 @@
 var aws = require('aws-sdk')
 var util = require('../util')
-var colors = require('colors')
 var async = require('async')
 var amazon = module.exports = {
 
@@ -26,11 +25,11 @@ var amazon = module.exports = {
       
       function iterate_instances (server) {
         server.Instances.forEach(function (instance) {
-          serialize_instance(server, instance)
+          serialize_instance(instance)
         })
       }
       
-      function serialize_instance (server, instance) {
+      function serialize_instance (instance) {
         var output = {
           'id': instance.InstanceId,
           'name': find_name(instance.Tags),
@@ -118,7 +117,7 @@ var find_name = function (tags) {
   var result = tags.filter(function (element) {
     return element.Key == 'Name'
   })
-  if (result != null && result.length) {
+  if (result && result.length) {
     return result[0].Value
   } else {
     return ""

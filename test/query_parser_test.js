@@ -1,3 +1,5 @@
+/* jshint -W030 */
+
 var should = require('should')
 
 var instance_1 = {

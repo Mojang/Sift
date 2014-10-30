@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Mojang/Sift.svg?branch=master)](https://travis-ci.org/Mojang/Sift)
 
-What is sift? A __lightweight__ and __easy-to-use__ tool to manage your clouds!
+What is sift? A __lightweight__ and __easy-to-use__ tool for accessing your clouds!
 
 ## What does it do?
 
@@ -10,7 +10,7 @@ Sift simply does the following steps:
 
 - Gathers all of your instances from different cloud providers and different accounts that are configured
 - Filters the servers based on the provided query (if any)
-- Execute any command on the result of previous step. The default command is `ssh`
+- Executes any command on the result of the previous step (if provided). The default command is `ssh`
 
 ## Features
 
@@ -294,9 +294,13 @@ And `my_aliases.json` looks like this:
 ### Contact
 Got any questions? You can email us at [sift@mojang.com](mailto:sift@mojang.com)
 
-### Contributors
+### Authors
 * [Amir Moulavi](https://twitter.com/mamirm)
 * [David Marby](http://dmarby.se)
 
 ### License
 Distributed under the [MIT License](https://github.com/Mojang/Sift/blob/master/LICENSE.md)
+
+
+### Thanks to
+* [Per Lööv](http://perloov.com) for the awesome logo

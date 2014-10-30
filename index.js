@@ -9,7 +9,7 @@ var async = require('async')
 var readline = require('readline')
 
 var config = util.load_config()
-if (config == null) {
+if (!config) {
   return
 }
 
@@ -47,7 +47,7 @@ var force_regions = commander.force_regions || config.force_regions
 var alias
 
 if (commander.args.length > 0) {
-  if (config.alias[commander.args.join(' ')] != null) {
+  if (config.alias[commander.args.join(' ')]) {
     alias = config.alias[commander.args.join(' ')]
   }
 }
@@ -61,10 +61,8 @@ var parse_arguments = function () {
   }
 
   if (commander.account || (alias && alias.accounts)) {
-    var found = false
-
     accounts = config.credentials.filter(function (account) {
-      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token != null && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
+      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
     })
 
     accounts = accounts.filter(util.check_account_type)
@@ -73,7 +71,7 @@ var parse_arguments = function () {
       return console.log('No accounts found with this name or public token'.red)
     }
   } else {
-    if (config.credentials == null || !config.credentials.length) {
+    if (!config.credentials || !config.credentials.length) {
       return console.log('No accounts defined in config'.red)
     }
 
@@ -84,7 +82,7 @@ var parse_arguments = function () {
     var valid_types = []
 
     commander.type.forEach(function (type) {
-      if (!(config.plugins.indexOf(type.toLowerCase()) > -1)) {
+      if (config.plugins.indexOf(type.toLowerCase()) === -1) {
         console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
       } else {
         valid_types.push(type.toLowerCase())
@@ -107,8 +105,7 @@ var setup_filters = function (accounts, regions) {
   var filters = ''
   var filter_list = []
 
-  if (commander.enable_filters || (config.enabled_filters != null && config.enabled_filters.length)) {
-    already_gathered = true
+  if (commander.enable_filters || (config.enabled_filters && config.enabled_filters.length)) {
     if (commander.enable_filters) {
       filter_list = filter_list.concat(commander.enable_filters.filter(function (filter) {
         if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
@@ -120,7 +117,7 @@ var setup_filters = function (accounts, regions) {
       }))
     }
 
-    if (config.enabled_filters != null && config.enabled_filters.length) {
+    if (config.enabled_filters && config.enabled_filters.length) {
       filter_list = filter_list.concat(config.enabled_filters)
     }
 
@@ -158,7 +155,7 @@ var gather_servers = function (accounts, regions, filters) {
       }
 
       account.regions.forEach(function (region) {
-        if (!(regions.indexOf(region) > -1)) {
+        if (regions.indexOf(region) === -1) {
           regions.push(region)
         }
       })
@@ -195,7 +192,7 @@ var gather_servers = function (accounts, regions, filters) {
     util.find_servers(account, function callback (servers) {
       next(null, servers)
     })
-  }, function (err, servers) {
+  }, function (error, servers) {
     if (!servers.length) {
       return console.log('No matching servers found'.red)
     }
@@ -205,7 +202,7 @@ var gather_servers = function (accounts, regions, filters) {
 }
 
 var filter_results = function (filters, servers) {
-  if (commander.query || commander.region || commander.servername || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters != null && filters.length)) {
+  if (commander.query || commander.region || commander.servername || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters && filters.length)) {
     try {
       var query = parser.generate_query_ast_sync(build_query(filters))
     } catch (error) {
@@ -354,18 +351,18 @@ var prepare_ssh = function (server, disable_tt) {
     var account_match = false
     var query
 
-    if (the_config.priority == 0) {
+    if (the_config.priority === 0) {
       ssh_config = the_config    
       return next()
     }
 
-    if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.public_token != null && util.contains_with_lowercase(server.account.public_token.toLowerCase(), the_config.accounts)))) {
+    if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.public_token && util.contains_with_lowercase(server.account.public_token.toLowerCase(), the_config.accounts)))) {
       account_match = true
     }
 
     if (!the_config.query || the_config.query == '*') {
       if (account_match) {
-        if (ssh_config == null || the_config.priority > ssh_config.priority) {
+        if (!ssh_config || the_config.priority > ssh_config.priority) {
           ssh_config = the_config
         }
       }
@@ -386,13 +383,13 @@ var prepare_ssh = function (server, disable_tt) {
 
       if (matches) {
         if ((the_config.accounts && account_match) || !the_config.accounts) {
-          if (ssh_config == null || the_config.priority > ssh_config.priority) {
+          if (!ssh_config || the_config.priority > ssh_config.priority) {
             ssh_config = the_config
           }
         }
       }
 
-      next()
+      next(error)
     })
   }
 
@@ -423,7 +420,7 @@ var ssh = function (server, ssh_config, disable_tt) {
     }
 
     if (alias && alias.keyfile) {
-      ssh_config.keyfile = keyfile
+      ssh_config.keyfile = alias.keyfile
     }
 
     if (commander.keyfile) {

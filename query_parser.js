@@ -52,7 +52,7 @@ var parser = new Parser(grammar)
 
 module.exports = { 
   match: function (json_object, query_ast, callback) {
-    if (json_object.account != null) {
+    if (json_object.account) {
       delete json_object.account
     }
     try {
@@ -64,14 +64,14 @@ module.exports = {
   },
 
   match_sync: function (json_object, query_ast) {
-    if (json_object.account != null) {
+    if (json_object.account) {
       delete json_object.account
     }
     try {
       return evaluate(query_ast, json_object)
     } catch (error) {
       console.trace(error)
-      throw err
+      throw error
     }
   },
 
@@ -134,7 +134,7 @@ var evaluate_equality_expression = function (current_ast_node, expression) {
 var evaluate_inequality = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
-  if (expression[key] != null) {
+  if (expression[key]) {
     if (typeof expression[key] === "object") {
       return expression[key].every(function (element, index, array) {
         return (typeof element === "string" ? (element.toLowerCase() != value) : (element != value))
@@ -150,7 +150,7 @@ var evaluate_inequality = function (current_ast_node, expression) {
 var evaluate_equality = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
-  if (expression[key] != null) {
+  if (expression[key]) {
     if (typeof expression[key] === "object") {
       return expression[key].some(function (element, index, array) {
         return (typeof element === "string" ? (element.toLowerCase() == value) : (element == value))
@@ -166,7 +166,7 @@ var evaluate_equality = function (current_ast_node, expression) {
 var evaluate_contains = function (current_ast_node, expression) {
   var key = current_ast_node.left.toLowerCase()
   var value = (typeof current_ast_node.right === "string" ? remove_single_quote(current_ast_node.right.toLowerCase()) : current_ast_node.right)
-  if (expression[key] != null) {
+  if (expression[key]) {
     if (typeof expression[key] === "object") {
       return expression[key].some(function (element, index, array) {
         return (typeof element === "string" ? (element.toLowerCase().indexOf(value) > -1) : (element.indexOf(value) > -1))

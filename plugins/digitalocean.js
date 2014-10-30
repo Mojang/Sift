@@ -5,7 +5,6 @@ var digitalocean = module.exports = {
   search: function (account, callback) {
     var results = []
     var client = nautical.getClient({ token: account.token })
-    var params = {}
     var get_servers = function (page, done) {
       client.droplets.list({ page: page }, function (err, reply) {
         if (err) {
