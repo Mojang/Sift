@@ -1,4 +1,6 @@
-# Sift [![Build Status](https://travis-ci.org/Mojang/Sift.svg?branch=master)](https://travis-ci.org/Mojang/Sift)
+![Sift](https://github.com/Mojang/Sift/blob/master/logo.png) 
+
+[![Build Status](https://travis-ci.org/Mojang/Sift.svg?branch=master)](https://travis-ci.org/Mojang/Sift)
 
 What is sift? A __lightweight__ and __easy-to-use__ tool to manage your clouds!
 
