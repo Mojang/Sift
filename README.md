@@ -14,8 +14,8 @@ Sift simply does the following steps:
 
 Sift supports the following (more expected to come):
 
-- Add as many _accounts_ you need!
 - Add as many _cloud providers_ you need!
+- Add as many _accounts_ you need!
 - Use our simple and easy query language to build _powerfull queries_ that can be used to filter results from all providers
 - Execute any _shell commands_ on any set of servers
 - Define _aliases_ for different tasks you need to do so you don't need to type out everything everytime
@@ -60,13 +60,13 @@ sudo npm link
     "credentials": [
         {
             "name": "Sessions",
-            "publicToken": "XXXXXXXXXXXXXXXXXXX",
+            "public_token": "XXXXXXXXXXXXXXXXXXX",
             "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
             "type": "amazon"
         },
         {
             "name": "Main",
-            "publicToken": "XXXXXXXXXXXXXXXXXXX",
+            "public_token": "XXXXXXXXXXXXXXXXXXX",
             "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
             "regions": [
                 "us-east-1"
@@ -85,7 +85,7 @@ sudo npm link
 }
 ```
 
-So in the above config we have defined 2 accounts namely `Sessions` and `Main` and both of them are connected to `amazon` cloud provider. `Sessions` account does not have any `regions` so `sift` will consider all available regions from the cloud provider which is `amazon`.
+So in the above config we have defined 2 accounts namely `Sessions` and `Main` and both of them are connected to `amazon` cloud provider. `Sessions` account does not have any `regions` so `sift` will consider all available regions from the cloud provider which is `amazon` in this example.
 
 **Note**: Names you give to different accounts have nothing to do with the real account name in the cloud providers.
 
@@ -95,17 +95,17 @@ If you run `sift` without any argument then it will show a list of all instances
 
 ```bash
 $ sift -l 
-Realms amazon (us-east-1,us-west-2,eu-west-1,ap-northeast-1,ap-southeast-2) 
+Sessions amazon (us-east-1,us-west-2,eu-west-1,ap-northeast-1,ap-southeast-2) 
 Main amazon (us-east-1) 
 ```
 
 But `sift` comes with querying capability. For simple queries we have provided you with some arguments as following:
 
 - `-n`: filtering based on the name of the instance
+- `--id`: filtering based on instance id
 - `-image`: filtering based on the image id
 - `-hostname`: filtering based on the hostname
 - `-ip`: filtering based on the Ip address
-- `--id`: filtering based on instance id
 
 If you need to express a complete query then see next section.
 
@@ -113,7 +113,7 @@ If you need to express a complete query then see next section.
 
 Use `-k` option together with a plugin name to get the list of supported keys that can be used in your queries.
 
-```bash
+```
 $ sift -k amazon
 Keys for amazon: id, name, region, hostname, account, image, ip
 ```
@@ -130,8 +130,8 @@ You can also have more than one statement, and combine them with `and` / `or`:
 $ sift -q '(name contains session) or (id = i-ae7fcafc)'
 ```
 
-As you see the statement consists of key and values. Retrieving keys is mentioned in the previous section. 
-You can combine logical statement as much as you need. If you need to have whitespaces in your values you can escape them list this:
+As you see the statement consists of key-value pairs. Retrieving keys is mentioned in the previous section. 
+You can combine logical statement as much as you need. If you need to have whitespaces or use `sift` keywords in your values you can escape them by using double qoutes like this:
 
 ```bash
 $ sift -q "(name contains 'auth session') or (id = i-ae7fcafc)"
@@ -146,7 +146,7 @@ Supported logical operators for the query system:
 
 #### Supported verbs
 
-Supported verbs you can use in your key value statements:
+Supported verbs you can use in your key-value statements:
 - `contains`, `CONTAINS`, `Contains`
 - `<>`, `!=`
 - `=`, `==`
@@ -154,13 +154,13 @@ Supported verbs you can use in your key value statements:
 
 ### Running commands
 
-You can run shell commands on one or many instances that matched your query:
+You can run shell commands on one or many instances that matches your query:
 
 ```bash
 $ sift -q 'name contains session' -c 'uptime'
 ```
 
-This commands only be executed on the instance you select but if you want to execute the command on all matching instances you can use `-A` like this:
+This commands will only be executed on the instance you select but if you want to execute the command on all matching instances you can use `-A` like this:
 
 ```bash
 $ sift -q 'name contains session' -c 'uptime' -A
@@ -206,6 +206,8 @@ You can define your aliases in a separate file and include them in your config f
 
 ```javascript
 {
+    "credentials": ...
+    "ssh_config": ...
     "alias_includes": ["/Users/user/Documents/my\_aliases.json"]
 }
 ```
@@ -281,11 +283,14 @@ And `my_aliases.json` looks like this:
             "Sessions"
          ],
          "query":"(tag.type = Auth) AND (tag.environment = PRODUCTION)"
-        },
+        }
    },
    "auto_connect_on_one_result":true
 }
 ```
+
+### Contact
+Got any questions? You can email us at [sift@mojang.com](mailto:sift@mojang.com)
 
 ### Contributors
 * [Amir Moulavi](https://twitter.com/mamirm)
