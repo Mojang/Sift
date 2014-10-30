@@ -73,34 +73,34 @@ var util = module.exports = {
     return false
   },
 
-  ssh: function (server, user, port, keyfile, options, command, disable_tt) {
-    var default_args = [user + '@' + server.hostname]
+  ssh: function (server, options) {
+    var default_args = [options.user + '@' + (options.private_ip ? server['private-ip'] : server.hostname)]
 
-    if (port) {
-      default_args.unshift('-p', port)
+    if (options.port) {
+      default_args.unshift('-p', options.port)
     }
 
-    if (keyfile) {
-      default_args.unshift('-i', keyfile)
+    if (options.keyfile) {
+      default_args.unshift('-i', options.keyfile)
     }
 
-    if (!disable_tt) {
+    if (!options.disable_tt) {
       default_args.unshift('-tt')
     }
 
-    var ssh_args = (options && options.length) ? options.concat(default_args) : default_args;
+    var ssh_args = (options.extra_options && options.extra_options.length) ? options.extra_options.concat(default_args) : default_args;
 
-    if (command) {
-      ssh_args.push(command)
+    if (options.command) {
+      ssh_args.push(options.command)
     }
 
-    if (!disable_tt) {
+    if (!options.disable_tt) {
       require('child_process').spawn('ssh', ssh_args, { stdio: 'inherit' })
     } else {
       var child = require('child_process').spawn('ssh', ssh_args)
 
       var output = function (data) {
-        console.log(colors[disable_tt](data.toString().replace(/\n$/, '')))
+        console.log(colors[options.disable_tt]('[' + server.id + '] '+ data.toString().replace(/\n$/, '')))
       }
 
       child.stdout.on('data', output)

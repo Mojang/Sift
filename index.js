@@ -31,6 +31,7 @@ commander
   //Misc
   .option('-q, --query <query>', 'Query')
   .option('-e, --enable_filters <filter>', 'Enable specific filter(s)', util.list)
+  .option('-P, --private_ip', 'Use private ip when connecting')
   // SSH options
   .option('-u, --user <user>', 'SSH user')
   .option('-p, --port <port>', 'SSH port')
@@ -405,12 +406,24 @@ var prepare_ssh = function (server, disable_tt) {
 var ssh = function (server, ssh_config, disable_tt) {
   // TODO Merge default conf with ssh config, config option?
   if (ssh_config) {
+    if (alias && alias.user) {
+      ssh_config.user = alias.user
+    }
+
     if (commander.user) {
       ssh_config.user = commander.user
     }
 
+    if (alias && alias.port) {
+      ssh_config.port = alias.port
+    }
+
     if (commander.port) {
       ssh_config.port = commander.port
+    }
+
+    if (alias && alias.keyfile) {
+      ssh_config.keyfile = keyfile
     }
 
     if (commander.keyfile) {
@@ -425,10 +438,36 @@ var ssh = function (server, ssh_config, disable_tt) {
       ssh_config.command = commander.ssh_command
     }
 
+    if (alias && alias.private_ip) {
+      ssh_config.private_ip = true
+    }
+
+    if (commander.private_ip) {
+      ssh_config.private_ip = true
+    }
+
     ssh_config.port = ssh_config.port ? ssh_config.port : 22
     ssh_config.user = ssh_config.user ? ssh_config.user : 'root'
 
-    require('./plugins/' + server.account.type).ssh(server, ssh_config.user, ssh_config.port, ssh_config.keyfile, (ssh_config.options != null && ssh_config.options.length) ? ssh_config.options : [], ssh_config.command, disable_tt)
+    var options = {
+      user: ssh_config.user,
+      port: ssh_config.port,
+      keyfile: ssh_config.keyfile,
+      command: ssh_config.command,
+      disable_tt: disable_tt,
+      private_ip: ssh_config.private_ip,
+      extra_options: []
+    }
+
+    if (ssh_config.options && ssh_config.options.length) {
+      options.extra_options = ssh_config.options
+    }
+
+    if (alias && alias.options) {
+      options.extra_options = alias.options
+    }
+
+    require('./plugins/' + server.account.type).ssh(server, options)
 
     return
   }

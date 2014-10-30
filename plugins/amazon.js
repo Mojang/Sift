@@ -70,8 +70,8 @@ var amazon = module.exports = {
 
   },
 
-  ssh: function (server, user, port, keyfile, options, command, disable_tt) {
-    util.ssh(server, user, port, keyfile, options, command, disable_tt)
+  ssh: function (server, options) {
+    util.ssh(server, options)
   },
 
   display: function (server, index) {
