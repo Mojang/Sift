@@ -1,4 +1,4 @@
-![Sift](https://github.com/Mojang/Sift/blob/master/logo.png) 
+![Sift](https://raw.githubusercontent.com/Mojang/Sift/master/logo.png) 
 
 [![Build Status](https://travis-ci.org/Mojang/Sift.svg?branch=master)](https://travis-ci.org/Mojang/Sift)
 
