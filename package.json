@@ -1,5 +1,6 @@
 {
   "name": "cloud-sift",
+  "description": "A lightweight and easy-to-use tool for accessing your clouds",
   "license": "MIT",
   "preferGlobal": "true",
   "bin": {
