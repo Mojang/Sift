@@ -4,7 +4,7 @@ node_js:
 before_script:
   - "npm install -g jshint"
 after_script: 
-  - "jshint"
+  - "jshint ."
 notifications:
   email:
     recipients:
