@@ -91,9 +91,6 @@ So in the above config we have defined 2 accounts namely `Sessions` and `Main` a
 
 **Note**: Names you give to different accounts have nothing to do with the real account name in the cloud providers.
 
-#### SSH config
-
-
 ### Sample usages
 
 If you run `sift` without any argument then it will show a list of all instances in the configured accounts. If you run it with `-l` it will list the current available accounts:
@@ -121,7 +118,7 @@ Use `-k` option together with a plugin name to get the list of supported keys th
 
 ```
 $ sift -k amazon
-Keys for amazon: id, name, region, hostname, account, image, ip
+Keys for amazon: id, name, region, hostname, account, image, ip, private-ip, private-hostname, keypair, type, security-group, availability-zone, tag.*
 ```
 
 In order to use `sift` query feature you need to use `-q`:
@@ -146,16 +143,18 @@ $ sift -q "(name contains 'auth session') or (id = i-ae7fcafc)"
 #### Supported logical operators
 
 Supported logical operators for the query system:
-- `and`, `And`, `AND`, `&`
-- `or`, `Or`, `OR`, `|`
-- `not`, `Not`, `NOT`, `~`, `!`
+
+-  `and`, `And`, `AND`, `&`
+-  `or`, `Or`, `OR`, `|`
+-  `not`, `Not`, `NOT`, `~`, `!`
 
 #### Supported verbs
 
 Supported verbs you can use in your key-value statements:
-- `contains`, `CONTAINS`, `Contains`
-- `<>`, `!=`
-- `=`, `==`
+
+-  `contains`, `CONTAINS`, `Contains`
+-  `<>`, `!=`
+-  `=`, `==`
 
 
 ### Running commands
@@ -172,7 +171,7 @@ This commands will only be executed on the instance you select but if you want t
 $ sift -q 'name contains session' -c 'uptime' -A
 ```
 
-### Defining Aliases
+### Aliases
 
 If you're running some queries every day you can define alias for them so you don't have to type them out every time you need them. You can use the key `alias` in your config file to define a list of aliases:
 
@@ -208,6 +207,7 @@ $ sift session log
 
 #### Alias variables
 An alias can include the following parameters:
+
 - `accounts` A list of account that the alias matches
 - `query` A query to match certain hosts
 - `command` A command to run on the matching hosts
@@ -255,7 +255,17 @@ And `my_aliases.json` looks like this:
 }
 ```
 
-### SSH options
+### SSH
+#### SSH command arguments
+Sift supports the following command arguments to modify the behaviour when connecting to a host:
+
+-  `-u, --user <user>`                SSH user
+-  `-p, --port <port>`                SSH port
+-  `-K, --keyfile <keyfile>`          SSH keyfile
+-  `-c, --ssh_command <ssh_command>`  Command to run on host(s)
+-  `-P, --private_ip`                 Use the private ip of the host when connecting
+
+#### SSH options
 SSH options are defined in the config as "ssh_config".
 
 - `accounts` A list of account that the ssh config matches
@@ -292,9 +302,6 @@ Example:
 
 In the above example, by default the user is ubuntu, and has some extra options.  
 When the tag "type" matches CentOS, the user will be set to root, and no extra options will be applied.
-
-To use the __internal ip__ of the instance when connecting over ssh,  
-you can use the option `-P`
 
 ### Filtering
 #### Region

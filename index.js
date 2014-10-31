@@ -360,7 +360,7 @@ var prepare_ssh = function (server, disable_tt) {
       account_match = true
     }
 
-    if (!the_config.query || the_config.query == '*') {
+    if (!the_config.query) {
       if (account_match) {
         if (!ssh_config || the_config.priority > ssh_config.priority) {
           ssh_config = the_config
