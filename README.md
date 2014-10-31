@@ -305,14 +305,28 @@ In the above example, by default the user is ubuntu, and has some extra options.
 When the tag "type" matches CentOS, the user will be set to root, and no extra options will be applied.
 
 ### Filtering
+
 #### Region
-"If you want all accounts of the same type that has the specified region to be used, regardless of their configured regions, you can use the config option `force_regions`, or use the command argument `-f` along with the `-r` argument."
+
+If you want all accounts of the same type that has the specified region to be used, regardless of their configured regions, you can use the config option `force_regions`, or use the command argument `-f` along with the `-r` argument.
+
 #### Account
+
+If you want to run `sift` against specific account you can use `-a` argument like this:
+
+```bash
+$ sift -a Sessions -q 'name contains auth'
+```
+
 #### Type
+
+
+
 #### Icinga
 
 
 ### Local provider
+
 Sift also comes with a "local" provider that can load a list of servers from local json files.
 To use this, create an account with the type "local" and specify the file(s) to import as "local_files".
 
