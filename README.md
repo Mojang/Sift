@@ -110,6 +110,8 @@ Main amazon (us-east-1)
 -  `-I, --image <image>`              Filter by image id
 -  `--id <id>`                        Filter by id
 
+You can specify multiple values for the above filters by comma separating them.
+
 If you need to express a complete query then see next section.
 
 ### Query language
@@ -323,11 +325,13 @@ $ sift -a Sessions -q 'name contains auth'
 You can also filter based on type of accounts. For example if you want to run `sift` for _amazon_ accounts you do it like this:
 
 ```bash
-$ sift -t amazon -q 'tag.type = auth'
+$ sift -t amazon -q 'name = auth'
 ``
 
 #### Icinga
-
+Using the icinga plugin, you can filter on hosts or services that are down in icinga.
+In the config, you need to provide `icinga_host`, `icinga_user`, and `icinga_pass`.
+To enable the filter, can use the `-e <filter>` commandline argument, or add "icinga" to the enabled_filters list in config.js
 
 ### Local provider
 
