@@ -23,20 +23,20 @@ commander
   .option('-a, --account <account>', 'Account name', util.list)
   .option('-t, --type <type>', 'Type of account', util.list)
   // Query shortcuts
-  .option('-n, --servername <name>', 'Search by name', util.list)
-  .option('-H, --hostname <hostname>', 'Search by hostname', util.list)
-  .option('-i, --ip <ip>', 'Search by ip', util.list)
-  .option('-I, --image <image>', 'Search by image', util.list)
-  .option('--id <id>', 'Search by id', util.list)
+  .option('-n, --servername <name>', 'Filter by name', util.list)
+  .option('-H, --hostname <hostname>', 'Filter by hostname', util.list)
+  .option('-i, --ip <ip>', 'Filter by ip', util.list)
+  .option('-I, --image <image>', 'Filter by image id', util.list)
+  .option('--id <id>', 'Filter by instance id', util.list)
   //Misc
   .option('-q, --query <query>', 'Query')
   .option('-e, --enable_filters <filter>', 'Enable specific filter(s)', util.list)
-  .option('-P, --private_ip', 'Use private ip when connecting')
   // SSH options
   .option('-u, --user <user>', 'SSH user')
   .option('-p, --port <port>', 'SSH port')
   .option('-K, --keyfile <keyfile>', 'SSH keyfile')
   .option('-c, --ssh_command <ssh_command>', 'Command to execute')
+  .option('-P, --private_ip', 'Use private ip when connecting')
   // Boolean options
   .option('-A, --run_on_all', 'Execute on all found hosts')
   .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')

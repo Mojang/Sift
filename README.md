@@ -16,11 +16,11 @@ Sift simply does the following steps:
 
 Sift supports the following (more expected to come):
 
-- Add as many _cloud providers_ you need!
-- Add as many _accounts_ you need!
-- Use our simple and easy query language to build _powerfull queries_ that can be used to filter results from all providers
-- Execute any _shell commands_ on any set of servers
-- Define _aliases_ for different tasks you need to do so you don't need to type out everything everytime
+- Add as many _cloud providers_ as you need!
+- Add as many _accounts_ as you need!
+- Use our simple and easy query language to build _powerful queries_ that can be used to filter results from all providers
+- Execute any _shell command_ on a set of servers
+- Define _aliases_ for different tasks you need to do so you don't have to type it out every time
 - Flexible _configuration_
 
 
@@ -53,7 +53,7 @@ sudo npm link
 
 ## How to run
 
-### Sample `.sift.json` file
+### Configuration
 
 `.sift.json` file is created in your home directory the first time you run `sift`. You can then edit the file to add more options to it!
 
@@ -91,6 +91,9 @@ So in the above config we have defined 2 accounts namely `Sessions` and `Main` a
 
 **Note**: Names you give to different accounts have nothing to do with the real account name in the cloud providers.
 
+#### SSH config
+
+
 ### Sample usages
 
 If you run `sift` without any argument then it will show a list of all instances in the configured accounts. If you run it with `-l` it will list the current available accounts:
@@ -101,13 +104,14 @@ Sessions amazon (us-east-1,us-west-2,eu-west-1,ap-northeast-1,ap-southeast-2)
 Main amazon (us-east-1) 
 ```
 
-But `sift` comes with querying capability. For simple queries we have provided you with some arguments as following:
+`sift` also comes with querying capability. For simple queries we have provided you with some arguments as following:
 
-- `-n`: filtering based on the name of the instance
-- `--id`: filtering based on instance id
-- `-image`: filtering based on the image id
-- `-hostname`: filtering based on the hostname
-- `-ip`: filtering based on the Ip address
+
+-  `-n, --servername <name>`          Filter by name
+-  `-H, --hostname <hostname>`        Filter by hostname
+-  `-i, --ip <ip>`                    Filter by ip
+-  `-I, --image <image>`              Filter by image id
+-  `--id <id>`                        Filter by id
 
 If you need to express a complete query then see next section.
 
@@ -170,7 +174,7 @@ $ sift -q 'name contains session' -c 'uptime' -A
 
 ### Defining Aliases
 
-If you're running some queries every day you can define alias for them so you don't type them out every time you need them. You can use the key `alias` in your config file to define a list of aliases:
+If you're running some queries every day you can define alias for them so you don't have to type them out every time you need them. You can use the key `alias` in your config file to define a list of aliases:
 
 ```javascript
 {
@@ -202,6 +206,23 @@ $ sift session
 $ sift session log
 ```
 
+#### Alias variables
+An alias can include the following parameters:
+- `accounts` A list of account that the alias matches
+- `query` A query to match certain hosts
+- `command` A command to run on the matching hosts
+- `user` The user that will be used for connecting
+- `port` The port that will be used for connecting
+- `keyfile` Path to the keyfile that will be used for connecting
+- `private_ip` Use the private ip for connecting to the matching hosts
+- `options` List of extra ssh arguments, each item will be separated by a space
+- `run_on_all` Run command (if specified, by alias or command argument) on all resulting hosts
+
+All alias variables are optional in themselves, but either accounts or query is required.  
+Most alias variables can be overriden by their command arguments such as -q for query.  
+`user`, `port`, `keyfile`, `private_ip` & `options` can also be set as an ssh config.  
+Setting it in an alias or using will override it.  
+
 #### Including alias from file
 
 You can define your aliases in a separate file and include them in your config file as the following:
@@ -210,7 +231,7 @@ You can define your aliases in a separate file and include them in your config f
 {
     "credentials": ...
     "ssh_config": ...
-    "alias_includes": ["/Users/user/Documents/my\_aliases.json"]
+    "alias_includes": ["/Users/user/Documents/my_aliases.json"]
 }
 ```
 
@@ -234,6 +255,58 @@ And `my_aliases.json` looks like this:
 }
 ```
 
+### SSH options
+SSH options are defined in the config as "ssh_config".
+
+- `accounts` A list of account that the ssh config matches
+- `query` A query to match certain hosts
+- `priority` (required) The priority of the ssh config, higher priority overrides a lower priority config. 0 means default and will match anything
+- `user` The user that will be used for connecting
+- `port` The port that will be used for connecting
+- `keyfile` Path to the keyfile that will be used for connecting
+- `private_ip` Use the private ip for connecting to the matching hosts
+- `options` List of extra ssh arguments, each item will be separated by a space
+
+Unless stated otherwise, all options are optional.  
+Either `query` or `accounts` are required, unless the ``priority is 0, in which case it will match anything. Only one config can have priority 0.  
+`query` and `accounts` can be combined in order to only try matching the query, if the accounts match.
+Priorities have no inheritance at this time.
+
+Example:
+```
+"ssh_config": [{
+   "priority":0,
+   "user":"ubuntu",
+   "port":22,
+   "options":[
+      "-o",
+      "StrictHostKeyChecking no"
+   ]
+},
+{
+   "priority":5,
+   "user":"root",
+   "query": "tag.type = CentOS"
+}]
+```
+
+In the above example, by default the user is ubuntu, and has some extra options.  
+When the tag "type" matches CentOS, the user will be set to root, and no extra options will be applied.
+
+To use the __internal ip__ of the instance when connecting over ssh,  
+you can use the option `-P`
+
+### Filtering
+#### Region
+#### Account
+#### Type
+#### Icinga
+
+
+
+### Misc
+#### Force regions
+#### Local provider
 
 ### Reference config file
 
@@ -241,7 +314,7 @@ And `my_aliases.json` looks like this:
 {
    "credentials":[
       {
-         "name":"Realms",
+         "name":"Amazon",
          "public_token":"XXXXXXXXXXXXXXXXXXXXXXXX",
          "token":"XXXXXXXXXXXXXXXXXXXXXXXXXX",
          "regions":[
@@ -270,7 +343,8 @@ And `my_aliases.json` looks like this:
    ],
    "plugins":[
       "amazon",
-      "digitalocean"
+      "digitalocean",
+      "local"
    ],
    "allowed_filters":[
 
@@ -301,6 +375,6 @@ Got any questions? You can email us at [sift@mojang.com](mailto:sift@mojang.com)
 ### License
 Distributed under the [MIT License](https://github.com/Mojang/Sift/blob/master/LICENSE.md)
 
-
 ### Thanks to
 * [Per Lööv](http://perloov.com) for the awesome logo
+* [Nijiko Yonskai](https://github.com/Nijikokun) for helping with cleaning up the code

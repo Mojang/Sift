@@ -15,12 +15,13 @@
     "url": "https://github.com/Mojang/Sift"
   },
   "bugs": {
-    "url": "http://github.com/Mojang/Sift/issues"
+    "url": "https://github.com/Mojang/Sift/issues"
   },
   "author": {
     "name": "Mojang AB",
     "url": "http://mojang.com"
   },
+  "homepage": "https://github.com/Mojang/Sift",
   "dependencies": {
     "aws-sdk": "^2.0.21",
     "colors": "^1.0.3",
