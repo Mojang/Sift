@@ -210,6 +210,7 @@ An alias can include the following parameters:
 
 - `accounts` A list of account that the alias matches
 - `query` A query to match certain hosts
+- `regions` Which regions to match
 - `command` A command to run on the matching hosts
 - `user` The user that will be used for connecting
 - `port` The port that will be used for connecting
@@ -305,15 +306,34 @@ When the tag "type" matches CentOS, the user will be set to root, and no extra o
 
 ### Filtering
 #### Region
+"If you want all accounts of the same type that has the specified region to be used, regardless of their configured regions, you can use the config option `force_regions`, or use the command argument `-f` along with the `-r` argument."
 #### Account
 #### Type
 #### Icinga
 
 
+### Local provider
+Sift also comes with a "local" provider that can load a list of servers from local json files.
+To use this, create an account with the type "local" and specify the file(s) to import as "local_files".
 
-### Misc
-#### Force regions
-#### Local provider
+```
+  { 
+    "name": "Local",
+    "type": "local",
+    "local_files": ["/Users/user/local_servers.json"]
+  }
+```
+
+The file containing the servers can look as follows:
+```
+[{
+  "id": "local",
+  "name": "Local machine",
+  "hostname": "127.0.0.1"
+}]
+```
+
+You can specify any fields and use them in the queries, however, `id`, `name` and `hostname` are required.
 
 ### Reference config file
 
