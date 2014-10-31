@@ -320,7 +320,11 @@ $ sift -a Sessions -q 'name contains auth'
 
 #### Type
 
+You can also filter based on type of accounts. For example if you want to run `sift` for _amazon_ accounts you do it like this:
 
+```bash
+$ sift -t amazon -q 'tag.type = auth'
+``
 
 #### Icinga
 
