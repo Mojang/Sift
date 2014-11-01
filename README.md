@@ -326,7 +326,7 @@ You can also filter based on type of accounts. For example if you want to run `s
 
 ```bash
 $ sift -t amazon -q 'name = auth'
-``
+```
 
 #### Icinga
 Using the icinga plugin, you can filter on hosts or services that are down in icinga.
