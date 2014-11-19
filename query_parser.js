@@ -156,7 +156,7 @@ var evaluate_equality = function (current_ast_node, expression) {
         return (typeof element === "string" ? (element.toLowerCase() == value) : (element == value))
       })
     } else {
-      return (typeof expression[key] === "string" ? (expression[key].toLowerCase() == value) : (expression[key] == value))
+      return (typeof expression[key] === "string" ? (expression[key].toString().toLowerCase() == value) : (expression[key] == value))
     }
   } else {
     return false
@@ -172,7 +172,7 @@ var evaluate_contains = function (current_ast_node, expression) {
         return (typeof element === "string" ? (element.toLowerCase().indexOf(value) > -1) : (element.indexOf(value) > -1))
       })
     } else {
-      return (typeof expression[key] === "string" ? (expression[key].toLowerCase().indexOf(value) > -1) : (expression[key].indexOf(value) > -1))
+      return (typeof expression[key] === "string" ? (expression[key].toString().toLowerCase().indexOf(value) > -1) : (expression[key].toString().indexOf(value) > -1))
     }
   } else {
     return false

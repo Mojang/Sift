@@ -22,8 +22,16 @@ var instance_2 = {
   'security-group' : ['PeoController', 'sg-666jf34', 'default', 'sg-123frgh']
 }
 
+var instance_3 = {
+  'name' : 'Something',
+  'id' : 123456,
+  'ip' : '127.0.1.2',
+  'image' : 'centOS',
+  'tag.type' : 'Something',
+  'security-group' : ['nothing']
+}
 
-var instances = [ instance_1, instance_2]
+var instances = [ instance_1, instance_2, instance_3]
   
 var parser = require('../query_parser.js')  
 
@@ -150,7 +158,8 @@ describe('Query Parser', function () {
     var ast = parser.generate_query_ast_sync(query)
     var result = match(ast)
     result.should.be.Array
-    result.should.have.lengthOf(0)
+    result.should.have.lengthOf(1)
+    result[0].should.eql(instance_3)
     done()
   })
 
@@ -169,6 +178,16 @@ describe('Query Parser', function () {
     var result = match(ast)
     result.should.be.Array
     result.should.have.lengthOf(2)
+    done()
+  })
+
+  it('works with numerical values', function (done) {
+    var query = 'id contains 123456'
+    var ast = parser.generate_query_ast_sync(query)
+    var result = match(ast)
+    result.should.be.Array
+    result.should.have.lengthOf(1)
+    result[0].should.eql(instance_3)
     done()
   })
 })
