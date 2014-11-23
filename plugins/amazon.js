@@ -120,6 +120,6 @@ var find_name = function (tags) {
   if (result && result.length) {
     return result[0].Value
   } else {
-    return ""
+    return ''
   }
 }
