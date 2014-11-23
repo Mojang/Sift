@@ -13,7 +13,7 @@ var digitalocean = module.exports = {
         }
 
         reply.body.droplets.forEach(function (server) {
-          results.push({
+          var result = {
             'id': server.id,
             'name': server.name,
             'region': server.region.slug,
@@ -23,7 +23,13 @@ var digitalocean = module.exports = {
             'ip': server.networks.v4[0].ip_address,
             'private-ip': ((server.networks.v4.length > 1) ? server.networks.v4[1].ip_address : server.networks.v4[0].ip_address),
             'type': server.size_slug
-          })
+          }
+
+          if (server.networks.v6 && server.networks.v6.length) {
+            result.ipv6 = server.networks.v6[0].ip_address
+          }
+          
+          results.push(result)
         })
 
         if ('function' === typeof reply.next) {
@@ -49,5 +55,5 @@ var digitalocean = module.exports = {
 
   regions: ['nyc1', 'ams1', 'sfo1', 'nyc2', 'ams2', 'sgp1', 'lon1', 'nyc3', 'ams3'],
 
-  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'type']
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'ipv6', 'type']
 }
