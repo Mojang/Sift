@@ -21,6 +21,7 @@ var digitalocean = module.exports = {
             'account': account,
             'image': server.image.id,
             'ip': server.networks.v4[0].ip_address,
+            'private-ip': ((server.networks.v4.length > 1) ? server.networks.v4[1].ip_address : server.networks.v4[0].ip_address),
             'type': server.size_slug
           })
         })
@@ -48,5 +49,5 @@ var digitalocean = module.exports = {
 
   regions: ['nyc1', 'ams1', 'sfo1', 'nyc2', 'ams2', 'sgp1', 'lon1', 'nyc3', 'ams3'],
 
-  keys: util.keys
+  keys: ['id', 'name', 'region', 'hostname', 'account', 'image', 'ip', 'private-ip', 'type']
 }
