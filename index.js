@@ -403,73 +403,77 @@ var prepare_ssh = function (server, disable_tt) {
 var ssh = function (server, ssh_config, disable_tt) {
   // TODO Merge default conf with ssh config, config option?
   if (ssh_config) {
-    if (alias && alias.user) {
-      ssh_config.user = alias.user
-    }
-
-    if (commander.user) {
-      ssh_config.user = commander.user
-    }
-
-    if (alias && alias.port) {
-      ssh_config.port = alias.port
-    }
-
-    if (commander.port) {
-      ssh_config.port = commander.port
-    }
-
-    if (alias && alias.keyfile) {
-      ssh_config.keyfile = alias.keyfile
-    }
-
-    if (commander.keyfile) {
-      ssh_config.keyfile = commander.keyfile
-    }
-
-    if (alias && alias.command) {
-      ssh_config.command = alias.command
-    }
-
-    if (commander.ssh_command) {
-      ssh_config.command = commander.ssh_command
-    }
-
-    if (alias && alias.private_ip) {
-      ssh_config.private_ip = true
-    }
-
-    if (commander.private_ip) {
-      ssh_config.private_ip = true
-    }
-
-    ssh_config.port = ssh_config.port ? ssh_config.port : 22
-    ssh_config.user = ssh_config.user ? ssh_config.user : 'root'
-
-    var options = {
-      user: ssh_config.user,
-      port: ssh_config.port,
-      keyfile: ssh_config.keyfile,
-      command: ssh_config.command,
-      disable_tt: disable_tt,
-      private_ip: ssh_config.private_ip,
-      extra_options: []
-    }
-
-    if (ssh_config.options && ssh_config.options.length) {
-      options.extra_options = ssh_config.options
-    }
-
-    if (alias && alias.options) {
-      options.extra_options = alias.options
-    }
-
-    require('./plugins/' + server.account.type).ssh(server, options)
+    require('./plugins/' + server.account.type).ssh(server, build_ssh_config(ssh_config, disable_tt))
 
     return
   }
 
   console.log('No matching ssh config, please specify a default ssh config'.red)
+}
+
+var build_ssh_config = function (ssh_config, disable_tt) {
+  var options = {
+    user: ssh_config.user,
+    port: ssh_config.port,
+    keyfile: ssh_config.keyfile,
+    command: ssh_config.command,
+    disable_tt: disable_tt,
+    private_ip: ssh_config.private_ip,
+    extra_options: []
+  }
+
+  if (alias && alias.user) {
+    options.user = alias.user
+  }
+
+  if (commander.user) {
+    options.user = commander.user
+  }
+
+  if (alias && alias.port) {
+    options.port = alias.port
+  }
+
+  if (commander.port) {
+    options.port = commander.port
+  }
+
+  if (alias && alias.keyfile) {
+    options.keyfile = alias.keyfile
+  }
+
+  if (commander.keyfile) {
+    options.keyfile = commander.keyfile
+  }
+
+  if (alias && alias.command) {
+    options.command = alias.command
+  }
+
+  if (commander.ssh_command) {
+    options.command = commander.ssh_command
+  }
+
+  if (alias && alias.private_ip) {
+    options.private_ip = true
+  }
+
+  if (commander.private_ip) {
+    options.private_ip = true
+  }
+
+  options.port = options.port ? options.port : 22
+  options.user = options.user ? options.user : 'root'
+
+  if (ssh_config.options && ssh_config.options.length) {
+    options.extra_options = ssh_config.options
+  }
+
+  if (alias && alias.options) {
+    options.extra_options = alias.options
+  }
+
+  return options
 }
 
 // Commands
