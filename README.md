@@ -267,6 +267,7 @@ Sift supports the following command arguments to modify the behaviour when conne
 -  `-K, --keyfile <keyfile>`          SSH keyfile
 -  `-c, --ssh_command <ssh_command>`  Command to run on host(s)
 -  `-P, --private_ip`                 Use the private ip of the host when connecting
+-  `--ansible <ansible_playbook>`     Run an ansible playbook on target host(s)
 
 #### SSH options
 SSH options are defined in the config as "ssh_config".

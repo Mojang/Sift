@@ -54,6 +54,10 @@ var util = module.exports = {
       })
     }
 
+    if (!final_config.ansible_dir) {
+      final_config.ansible_dir = path.resolve(util.home, '.sift_ansible')
+    }
+
     config = final_config
     return final_config
   },

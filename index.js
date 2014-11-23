@@ -7,6 +7,8 @@ var parser = require('./query_parser')
 var pjson = require('./package.json')
 var async = require('async')
 var readline = require('readline')
+var path = require('path')
+var fs = require('fs')
 
 var config = util.load_config()
 if (!config) {
@@ -37,6 +39,7 @@ commander
   .option('-K, --keyfile <keyfile>', 'SSH keyfile')
   .option('-c, --ssh_command <ssh_command>', 'Command to execute')
   .option('-P, --private_ip', 'Use private ip when connecting')
+  .option('--ansible <ansible_playbook>', 'Run an ansible playbook on target host(s)')
   // Boolean options
   .option('-A, --run_on_all', 'Execute on all found hosts')
   .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')
@@ -310,15 +313,33 @@ var display_results = function (result) {
   })
 
   if (result.length == 1 && config.auto_connect_on_one_result) {
-    return prepare_ssh(result[0])
+    return prepare_ssh(result[0], function (ssh_config) {
+      if (commander.ansible) {
+        ansible([{ server: result[0], ssh_config: ssh_config }])
+      } else {
+        ssh(result[0], ssh_config)
+      }
+    })
   }
 
-  if (((alias && alias.run_on_all) || commander.run_on_all) && ((alias && alias.command) || commander.ssh_command)) {
-    return result.forEach(function (server) {
-      prepare_ssh(server, util.colors[color_index++])
+  if ((((alias && alias.run_on_all) || commander.run_on_all) && ((alias && alias.command) || commander.ssh_command)) || (commander.ansible && commander.run_on_all)) {
+    return async.mapSeries(result, function (server, next) {
+      prepare_ssh(server, function (ssh_config) {
+        var color = util.colors[color_index++]
 
-      if (color_index > (util.colors.length - 1)) {
-        color_index = 0
+        if (color_index > (util.colors.length - 1)) {
+          color_index = 0
+        }
+
+        next(null, { server: server, ssh_config: ssh_config, disable_tt: color })
+      })
+    }, function (error, ssh_results) {
+      if (commander.ansible) {
+        ansible(ssh_results)
+      } else {
+        ssh_results.forEach(function (ssh_result) {
+          ssh(ssh_result.server, ssh_result.ssh_config, ssh_result.disable_tt)
+        })
       }
     })
   }
@@ -336,11 +357,17 @@ var display_results = function (result) {
       return console.log('Invalid selection'.red)
     }
 
-    prepare_ssh(server)
+    prepare_ssh(server, function (ssh_config) {
+      if (commander.ansible) {
+        ansible([{ server: server, ssh_config: ssh_config }])
+      } else {
+        ssh(server, ssh_config)
+      }
+    })
   })
 }
 
-var prepare_ssh = function (server, disable_tt) {
+var prepare_ssh = function (server, callback) {
   var ssh_config
 
   if (!config.ssh_config.length) {
@@ -394,7 +421,7 @@ var prepare_ssh = function (server, disable_tt) {
   }
 
   function next (error) {
-    ssh(server, ssh_config, disable_tt)
+    callback(ssh_config)
   }
 
   async.each(config.ssh_config, iterate_configs, next)
@@ -403,12 +430,60 @@ var prepare_ssh = function (server, disable_tt) {
 var ssh = function (server, ssh_config, disable_tt) {
   // TODO Merge default conf with ssh config, config option?
   if (ssh_config) {
-    require('./plugins/' + server.account.type).ssh(server, build_ssh_config(ssh_config, disable_tt))
-
-    return
+    return require('./plugins/' + server.account.type).ssh(server, build_ssh_config(ssh_config, disable_tt))
   }
 
   console.log('No matching ssh config, please specify a default ssh config'.red)
+}
+
+var ansible = function (servers) {
+  var inventory_file = path.resolve(config.ansible_dir, (new Date()).valueOf().toString() + '.sh')
+
+  var ansible_inventory = {
+    all: {
+      hosts: [],
+      vars: {
+        "ansible_connection": "ssh"
+      }
+    },
+    _meta: {
+      hostvars: {}
+    }
+  }
+
+  servers.forEach(function (server) {
+    server.ssh_config = build_ssh_config(server.ssh_config)
+    var hostname = (server.ssh_config.private_ip ? server.server['private-ip'] : server.server.hostname)
+    
+    ansible_inventory.all.hosts.push(hostname)
+    
+    var options = {
+      ansible_ssh_user: server.ssh_config.user
+    }
+
+    if (server.ssh_config.port) {
+      options.ansible_ssh_port = server.ssh_config.port
+    }
+
+    if (server.ssh_config.keyfile) {
+      options.ansible_ssh_private_key_file = server.ssh_config.keyfile
+    }
+
+    ansible_inventory._meta.hostvars[hostname] = options
+  })
+
+  fs.mkdir(config.ansible_dir, function (error) {})
+  fs.writeFileSync(inventory_file, '#!/bin/sh\necho \'' + JSON.stringify(ansible_inventory) + '\'', 'utf8')
+  fs.chmodSync(inventory_file, 0755)
+
+  var child = require('child_process').spawn('ansible-playbook', [commander.ansible, '-i', inventory_file], { stdio: 'inherit' })
+  child.on('exit', function (code, signal) {
+    fs.unlink(inventory_file, function (error) {
+      if (error) {
+        console.log('Error removing ansible inventory: %s', inventory_file)
+      }
+    })
+  })
 }
 
 var build_ssh_config = function (ssh_config, disable_tt) {
