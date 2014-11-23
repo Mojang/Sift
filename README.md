@@ -21,6 +21,7 @@ Sift supports the following (more expected to come):
 - Use our simple and easy query language to build _powerful queries_ that can be used to filter results from all providers
 - Execute any _shell command_ on a set of servers
 - Define _aliases_ for different tasks you need to do so you don't have to type it out every time
+- Ansible support!
 - Flexible _configuration_
 
 
@@ -333,6 +334,26 @@ $ sift -t amazon -q 'name = auth'
 Using the icinga plugin, you can filter on hosts or services that are down in icinga.
 In the config, you need to provide `icinga_host`, `icinga_user`, and `icinga_pass`.
 To enable the filter, can use the `-e <filter>` commandline argument, or add "icinga" to the enabled_filters list in config.js
+
+### Ansible support
+It is possible to run an ansible playbook on result set of a filtering. If you have the following playbook saved in a file named `uptime-playbook`:
+
+```yaml
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - shell: uptime
+    register: uptime
+ 
+  - debug: var=uptime.stdout_lines
+```
+
+You can use it with sift like this:
+
+```bash
+$ sift -q 'name contains session' --ansible uptime-playbook -A
+```
 
 ### Local provider
 
