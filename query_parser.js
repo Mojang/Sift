@@ -12,7 +12,7 @@ var grammar = {
       ["not|NOT|Not|\\!|\\~", "return 'not';"],
       ["==|=", "return '=';"],
       ["CONTAINS|Contains|contains", "return 'contains';"],
-      ["[a-zA-Z0-9\\-\\.\\?\\*\\_]+|\\'[a-zA-Z0-9\\-\\.\\?\\*\\_\\s+]+\\'", "return 'STRING';"],
+      ["[a-zA-Z0-9\\-\\.\\?\\*\\_\\:]+|\\'[a-zA-Z0-9\\-\\.\\?\\*\\_\\:\\s+]+\\'", "return 'STRING';"],
       ["$", "return 'EOF';"]
     ]
   },
