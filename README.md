@@ -1,6 +1,6 @@
 ![Sift](https://raw.githubusercontent.com/Mojang/Sift/master/logo.png) 
 
-[![Build Status](https://travis-ci.org/Mojang/Sift.svg?branch=master)](https://travis-ci.org/Mojang/Sift)
+[![Build Status](https://travis-ci.org/Mojang/Sift.svg?branch=master)](https://travis-ci.org/Mojang/Sift) [![NPM Version](http://img.shields.io/npm/v/cloud-sift.svg)](https://www.npmjs.com/package/cloud-sift)
 
 What is sift? A __lightweight__ and __easy-to-use__ tool for accessing your clouds!
 
