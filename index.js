@@ -8,12 +8,82 @@ var pjson = require('./package.json')
 var async = require('async')
 var readline = require('readline')
 var path = require('path')
+var omelette = require('omelette')
 var fs = require('fs')
 
 var config = util.load_config()
 if (!config) {
   return
 }
+
+var sub_command_count = 0
+var subcommands = {}
+
+Object.keys(config.alias).forEach(function (alias_key) {
+  var alias_split = alias_key.split(' ')
+  var alias_length = alias_split.length
+  if (sub_command_count < alias_length) {
+    sub_command_count = alias_length
+  }
+
+  var i = 0
+  alias_split.forEach(function (the_split) {
+    if (!subcommands[i]) {  
+      if (i > 0) {
+        subcommands[i] = {}
+      } else {
+        subcommands[i] = []
+      }
+    }
+
+    if (i > 0) {
+      if (!subcommands[i][alias_split[i - 1]]) {
+        subcommands[i][alias_split[i - 1]] = []
+      }
+
+      subcommands[i][alias_split[i - 1]].push(the_split)
+    } else {
+      subcommands[i].push(the_split)
+    }
+
+    i++
+  })
+})
+
+Object.keys(subcommands).forEach(function (subcommands_key) {
+  if (subcommands_key == 0) {
+    subcommands[subcommands_key] = util.deduplicate_array(subcommands[subcommands_key])
+  } else {
+    Object.keys(subcommands[subcommands_key]).forEach(function (sub_subcommands_key) {
+      subcommands[subcommands_key][sub_subcommands_key] = util.deduplicate_array(subcommands[subcommands_key][sub_subcommands_key])
+    })
+  }
+})
+
+var basecommand = 'sift '
+
+for (var i = 1; i <= sub_command_count; i++) {
+  basecommand += '<subcommand' + i + '> '
+}
+
+var complete = omelette(basecommand)
+
+complete.on('complete', function (fragment, word, line) {
+  var split = fragment.split('subcommand')
+  if (split && split.length) {
+    if (subcommands[split[1] - 1]) {
+      if (split[1] - 1 == 0) {
+        this.reply(subcommands[split[1] - 1])
+      } else {
+        if (subcommands[split[1] - 1] && subcommands[split[1] - 1][word]) {
+          this.reply(subcommands[split[1] - 1][word])
+        }
+      }
+    }
+  }
+})
+
+complete.init()
 
 commander
   .version(pjson.version)
@@ -43,7 +113,15 @@ commander
   // Boolean options
   .option('-A, --run_on_all', 'Execute on all found hosts')
   .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')
+  .option('--autocompletion', 'Install autocompletion')
   .parse(process.argv)
+
+
+if (commander.autocompletion) {
+  console.log(colors.green('Done! You might need to restart your terminal'))
+  complete.setupShellInitFile()
+  return
+}
 
 var force_regions = commander.force_regions || config.force_regions
 

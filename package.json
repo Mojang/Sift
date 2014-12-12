@@ -24,13 +24,14 @@
   },
   "homepage": "https://github.com/Mojang/Sift",
   "dependencies": {
+    "async": "^0.9.0",
     "aws-sdk": "^2.0.21",
     "colors": "^1.0.3",
     "commander": "^2.5.0",
     "jison": "^0.4.15",
     "nautical": "^0.1.0",
-    "unirest": "^0.2.7",
-    "async": "^0.9.0"
+    "omelette": "^0.3.1",
+    "unirest": "^0.2.7"
   },
   "devDependencies": {
     "should": "^4.1.0",
