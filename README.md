@@ -259,6 +259,30 @@ And `my_aliases.json` looks like this:
 }
 ```
 
+#### Alias auto completion
+
+Sift has support for auto completion of aliases in bash/zsh.
+To install it you can simply run 
+```bash
+$ sift --autocompletion
+```
+
+Or if you prefer installing it manually, you can run something like this:
+
+For **zsh**
+
+```bash
+echo '. <(sift --completion)' >> .zshrc
+```
+
+For **bash**
+
+```bash
+sift --completion >> ~/sift.completion.sh
+echo 'source ~/sift.completion.sh' >> .bash_profile
+```
+
+
 ### SSH
 #### SSH command arguments
 Sift supports the following command arguments to modify the behaviour when connecting to a host:

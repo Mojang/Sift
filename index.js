@@ -20,20 +20,17 @@ var sub_command_count = 0
 var subcommands = {}
 
 Object.keys(config.alias).forEach(function (alias_key) {
+  var i = 0
   var alias_split = alias_key.split(' ')
   var alias_length = alias_split.length
+  
   if (sub_command_count < alias_length) {
     sub_command_count = alias_length
   }
 
-  var i = 0
   alias_split.forEach(function (the_split) {
     if (!subcommands[i]) {  
-      if (i > 0) {
-        subcommands[i] = {}
-      } else {
-        subcommands[i] = []
-      }
+      subcommands[i] = i > 0 ? {} : []
     }
 
     if (i > 0) {
@@ -51,7 +48,7 @@ Object.keys(config.alias).forEach(function (alias_key) {
 })
 
 Object.keys(subcommands).forEach(function (subcommands_key) {
-  if (subcommands_key == 0) {
+  if (subcommands_key === '0') {
     subcommands[subcommands_key] = util.deduplicate_array(subcommands[subcommands_key])
   } else {
     Object.keys(subcommands[subcommands_key]).forEach(function (sub_subcommands_key) {
@@ -62,7 +59,7 @@ Object.keys(subcommands).forEach(function (subcommands_key) {
 
 var basecommand = 'sift '
 
-for (var i = 1; i <= sub_command_count; i++) {
+for (var i = 0; i < sub_command_count; i++) {
   basecommand += '<subcommand' + i + '> '
 }
 
@@ -71,12 +68,12 @@ var complete = omelette(basecommand)
 complete.on('complete', function (fragment, word, line) {
   var split = fragment.split('subcommand')
   if (split && split.length) {
-    if (subcommands[split[1] - 1]) {
-      if (split[1] - 1 == 0) {
-        this.reply(subcommands[split[1] - 1])
+    if (subcommands[split[1]]) {
+      if (split[1] === '0') {
+        this.reply(subcommands[split[1]])
       } else {
-        if (subcommands[split[1] - 1] && subcommands[split[1] - 1][word]) {
-          this.reply(subcommands[split[1] - 1][word])
+        if (subcommands[split[1]] && subcommands[split[1]][word]) {
+          this.reply(subcommands[split[1]][word])
         }
       }
     }
