@@ -63,17 +63,23 @@ for (var i = 0; i < sub_command_count; i++) {
   basecommand += '<subcommand' + i + '> '
 }
 
-var complete = omelette(basecommand)
+var complete = omelette(basecommand.trim())
 
 complete.on('complete', function (fragment, word, line) {
+  if (!fragment) {
+    return
+  }
+
   var split = fragment.split('subcommand')
   if (split && split.length) {
-    if (subcommands[split[1]]) {
+    var item = subcommands[split[1]]
+    
+    if (item) {
       if (split[1] === '0') {
-        this.reply(subcommands[split[1]])
+        this.reply(item)
       } else {
-        if (subcommands[split[1]] && subcommands[split[1]][word]) {
-          this.reply(subcommands[split[1]][word])
+        if (item && item[word]) {
+          this.reply(item[word])
         }
       }
     }
