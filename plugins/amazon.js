@@ -34,7 +34,7 @@ var amazon = module.exports = {
           'id': instance.InstanceId,
           'name': find_name(instance.Tags),
           'region': region,
-          'hostname': instance.PublicDnsName ? instance.PublicDnsName : instance.PublicIpAddress,
+          'hostname': instance.PublicDnsName ? instance.PublicDnsName : (instance.PublicIpAddress ? instance.PublicIpAddress : instance.PrivateIpAddress),
           'account': account,
           'image': instance.ImageId,
           'ip': instance.PublicIpAddress,
