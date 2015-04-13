@@ -75,6 +75,15 @@ sudo npm link
                 "us-east-1"
             ],
             "type": "amazon"
+        },
+        {
+            "name": "Example",
+            "profile": "~/.aws/credentials profile name",
+            "type": "amazon"
+        },
+        {
+            "name": "Default credentials from ~/.aws/credentials",
+            "type": "amazon"
         }
     ],
     "ssh_config": [

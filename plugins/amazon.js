@@ -15,7 +15,14 @@ var amazon = module.exports = {
       ]
     }
 
-    aws.config.update({ accessKeyId: account.public_token, secretAccessKey: account.token })
+    if (account.public_token && account.token) {
+      aws.config.update({ accessKeyId: account.public_token, secretAccessKey: account.token })
+    } else if (account.profile) {
+      aws.config.credentials = new aws.SharedIniFileCredentials({ profile: account.profile })
+    } else {
+      delete aws.config.credentials
+    }
+
     async.concat(account.regions, function (region, next) {
       var result = []
       function handle_search (error, servers) {

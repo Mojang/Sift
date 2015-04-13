@@ -46,6 +46,7 @@ var util = module.exports = {
         } catch (error) {
           return console.log('Error reading %s, invalid syntax?'.red, alias_include)
         }   
+        
         Object.keys(json).forEach(function (key) {
           if (!final_config.alias[key]) {
             final_config.alias[key] = json[key]
