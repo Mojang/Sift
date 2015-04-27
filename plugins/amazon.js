@@ -1,15 +1,15 @@
 var aws = require('aws-sdk')
 var util = require('../util')
 var async = require('async')
-var amazon = module.exports = {
+module.exports = {
 
   search: function (account, callback) {
     var params = {
       Filters: [
         {
-        Name: 'instance-state-name',
+          Name: 'instance-state-name',
           Values: [
-            'running',
+            'running'
           ]
         }
       ]
@@ -25,17 +25,18 @@ var amazon = module.exports = {
 
     async.concat(account.regions, function (region, next) {
       var result = []
+
       function handle_search (error, servers) {
         servers.forEach(iterate_instances)
         next(error, result)
       }
-      
+
       function iterate_instances (server) {
         server.Instances.forEach(function (instance) {
           serialize_instance(instance)
         })
       }
-      
+
       function serialize_instance (instance) {
         var output = {
           'id': instance.InstanceId,
@@ -51,26 +52,27 @@ var amazon = module.exports = {
           'type': instance.InstanceType,
           'availability-zone': instance.Placement.AvailabilityZone
         }
-        
+
         instance.Tags.forEach(function (tag) {
           output['tag.' + tag.Key.toLowerCase()] = tag.Value
         })
-        
+
         output['security-group'] = []
         instance.SecurityGroups.forEach(function (sec) {
           output['security-group'].push(sec.GroupId)
           output['security-group'].push(sec.GroupName)
         })
-        
+
         result.push(output)
       }
-      
+
       search_region(region, params, handle_search)
     }, function (error, instances) {
       if (error) {
         console.log('Something went wrong while searching Amazon %s'.red, error)
         return callback([])
       }
+
       callback(instances)
     })
 
@@ -92,24 +94,24 @@ var amazon = module.exports = {
 var search_region = function (region, params, next) {
   var ec2 = new aws.EC2({ region: region })
   var results = []
-  
+
   var describe_instances = function (params, done) {
     ec2.describeInstances(params, function (error, data) {
       if (error) {
         return done(error)
       }
-      
+
       results.push(data.Reservations)
-      
+
       if (data.NextToken) {
         params.NextToken = data.NextToken
         return describe_instances(params, done)
       }
-      
+
       return done()
     })
   }
-  
+
   describe_instances(params, function (error) {
     var result = []
     results.forEach(function (servers) {
@@ -119,10 +121,9 @@ var search_region = function (region, params, next) {
   })
 }
 
-
 var find_name = function (tags) {
   var result = tags.filter(function (element) {
-    return element.Key == 'Name'
+    return element.Key === 'Name'
   })
   if (result && result.length) {
     return result[0].Value

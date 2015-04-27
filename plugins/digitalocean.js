@@ -1,15 +1,14 @@
 var nautical = require('nautical')
 var util = require('../util')
-var digitalocean = module.exports = {
+module.exports = {
 
   search: function (account, callback) {
     var results = []
     var client = nautical.getClient({ token: account.token })
     var get_servers = function (page, done) {
-      client.droplets.list({ page: page }, function (err, reply) {
-        if (err) {
-          console.log('Something went wrong when searching DigitalOcean: %s'.red, err)
-          return done(err)
+      client.droplets.list({ page: page }, function (error, reply) {
+        if (error) {
+          return done(error)
         }
 
         reply.body.droplets.forEach(function (server) {
@@ -28,12 +27,12 @@ var digitalocean = module.exports = {
           if (server.networks.v6 && server.networks.v6.length) {
             result.ipv6 = server.networks.v6[0].ip_address
           }
-          
+
           results.push(result)
         })
 
-        if ('function' === typeof reply.next) {
-          return get_servers(page+=1, done)
+        if (typeof reply.next === 'function') {
+          return get_servers(page += 1, done)
         }
 
         return done()
@@ -41,6 +40,10 @@ var digitalocean = module.exports = {
     }
 
     get_servers(1, function (error) {
+      if (error) {
+        console.log('Something went wrong when searching DigitalOcean: %s'.red, error)
+      }
+
       return callback(results)
     })
   },

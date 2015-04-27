@@ -35,7 +35,7 @@ module.exports = exports = {
   enabled_filters: [],
   force_regions: false,
   ssh_config: [
-    { 
+    {
       priority: 0,
       user: 'root',
       port: 22,

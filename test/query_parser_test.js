@@ -1,41 +1,41 @@
-/* jshint -W030 */
+/* eslint-env node, mocha */
 
-var should = require('should')
+var should = require('should') // eslint-disable-line no-unused-vars
 
 var instance_1 = {
-  'name' : 'McoController - PRODUCTION',
-  'id' : 'i-12334',
-  'ip' : '127.0.0.1',
-  'image' : 'ubuntu-14.04-kernel',
-  'tag.category' : 'server:controller',
-  'tag.type' : 'McoController',
-  'tag.environment' : 'PRODUCTION',
-  'security-group' : ['McoController', 'sg-2223jf34', 'default', 'sg-343ffgh']
+  'name': 'McoController - PRODUCTION',
+  'id': 'i-12334',
+  'ip': '127.0.0.1',
+  'image': 'ubuntu-14.04-kernel',
+  'tag.category': 'server:controller',
+  'tag.type': 'McoController',
+  'tag.environment': 'PRODUCTION',
+  'security-group': ['McoController', 'sg-2223jf34', 'default', 'sg-343ffgh']
 }
 
 var instance_2 = {
-  'name' : 'PeoController - PRODUCTION',
-  'id' : 'i-66666',
-  'ip' : '54.54.0.1',
-  'image' : 'ubuntu-12.10-kernel',
-  'tag.category' : 'server:controller',
-  'tag.type' : 'PeoController',
-  'tag.environment' : 'PRODUCTION',
-  'security-group' : ['PeoController', 'sg-666jf34', 'default', 'sg-123frgh']
+  'name': 'PeoController - PRODUCTION',
+  'id': 'i-66666',
+  'ip': '54.54.0.1',
+  'image': 'ubuntu-12.10-kernel',
+  'tag.category': 'server:controller',
+  'tag.type': 'PeoController',
+  'tag.environment': 'PRODUCTION',
+  'security-group': ['PeoController', 'sg-666jf34', 'default', 'sg-123frgh']
 }
 
 var instance_3 = {
-  'name' : 'Something',
-  'id' : 123456,
-  'ip' : '127.0.1.2',
-  'image' : 'centOS',
-  'tag.type' : 'Something',
-  'security-group' : ['nothing']
+  'name': 'Something',
+  'id': 123456,
+  'ip': '127.0.1.2',
+  'image': 'centOS',
+  'tag.type': 'Something',
+  'security-group': ['nothing']
 }
 
 var instances = [ instance_1, instance_2, instance_3]
-  
-var parser = require('../query_parser.js')  
+
+var parser = require('../query_parser.js')
 
 var match = function (ast) {
   return instances.filter(function (cur) {
@@ -44,11 +44,10 @@ var match = function (ast) {
 }
 
 var is_the_same = function (element, index, array) {
-  return JSON.stringify(element) === JSON.stringify(array[0]) 
+  return JSON.stringify(element) === JSON.stringify(array[0])
 }
 
 describe('Query Parser', function () {
-  
   it('generates an object of the query', function (done) {
     var query = 'id contains i-'
     var ast = parser.generate_query_ast_sync(query)
@@ -109,7 +108,7 @@ describe('Query Parser', function () {
     var v1 = '(id contains i-)'
     var v2 = '(id Contains i-)'
     var v3 = '(id CONTAINS i-)'
-    var list = [v1, v2, v3  ].map(function (el) { return parser.generate_query_ast_sync(el) })
+    var list = [v1, v2, v3].map(function (el) { return parser.generate_query_ast_sync(el) })
     list.every(is_the_same).should.be.true
     done()
   })

@@ -1,653 +1,437 @@
-#!/usr/bin/env node
+module.exports = function (options, alias) {
+  var util = require('./util')
+  var colors = require('colors')
+  var parser = require('./query_parser')
+  var async = require('async')
+  var readline = require('readline')
+  var path = require('path')
+  var fs = require('fs')
 
-var util = require('./util')
-var colors = require('colors')
-var commander = require('commander')
-var parser = require('./query_parser')
-var pjson = require('./package.json')
-var async = require('async')
-var readline = require('readline')
-var path = require('path')
-var omelette = require('omelette')
-var fs = require('fs')
+  var Sift = {}
 
-var config = util.load_config()
-if (!config) {
-  return
-}
+  Sift.gather_servers = function (accounts, regions, filters) {
+    var accounts_to_use = []
 
-var sub_command_count = 0
-var subcommands = {}
-
-Object.keys(config.alias).forEach(function (alias_key) {
-  var i = 0
-  var alias_split = alias_key.split(' ')
-  var alias_length = alias_split.length
-  
-  if (sub_command_count < alias_length) {
-    sub_command_count = alias_length
-  }
-
-  alias_split.forEach(function (the_split) {
-    if (!subcommands[i]) {  
-      subcommands[i] = i > 0 ? {} : []
-    }
-
-    if (i > 0) {
-      if (!subcommands[i][alias_split[i - 1]]) {
-        subcommands[i][alias_split[i - 1]] = []
-      }
-
-      subcommands[i][alias_split[i - 1]].push(the_split)
-    } else {
-      subcommands[i].push(the_split)
-    }
-
-    i++
-  })
-})
-
-Object.keys(subcommands).forEach(function (subcommands_key) {
-  if (subcommands_key === '0') {
-    subcommands[subcommands_key] = util.deduplicate_array(subcommands[subcommands_key])
-  } else {
-    Object.keys(subcommands[subcommands_key]).forEach(function (sub_subcommands_key) {
-      subcommands[subcommands_key][sub_subcommands_key] = util.deduplicate_array(subcommands[subcommands_key][sub_subcommands_key])
-    })
-  }
-})
-
-var basecommand = 'sift '
-
-for (var i = 0; i < sub_command_count; i++) {
-  basecommand += '<subcommand' + i + '> '
-}
-
-var complete = omelette(basecommand.trim())
-
-complete.on('complete', function (fragment, word, line) {
-  if (!fragment) {
-    return
-  }
-
-  var split = fragment.split('subcommand')
-  if (split && split.length) {
-    var item = subcommands[split[1]]
-    
-    if (item) {
-      if (split[1] === '0') {
-        this.reply(item)
-      } else {
-        if (item && item[word]) {
-          this.reply(item[word])
+    if (!regions || !regions.length) {
+      regions = []
+      accounts.forEach(function (account) {
+        if (!account.regions) {
+          account.regions = require('./plugins/' + account.type).regions
         }
-      }
-    }
-  }
-})
 
-complete.init()
-
-commander
-  .version(pjson.version)
-  // Actions
-  .option('-l, --list_accounts', 'List accounts')
-  .option('-k, --keys <key>', 'List searchable keys for a cloud provider')
-  // Filters
-  .option('-r, --region <region>', 'Aws region', util.list)
-  .option('-a, --account <account>', 'Account name', util.list)
-  .option('-t, --type <type>', 'Type of account', util.list)
-  // Query shortcuts
-  .option('-n, --servername <name>', 'Filter by name', util.list)
-  .option('-H, --hostname <hostname>', 'Filter by hostname', util.list)
-  .option('-i, --ip <ip>', 'Filter by ip', util.list)
-  .option('-I, --image <image>', 'Filter by image id', util.list)
-  .option('--id <id>', 'Filter by instance id', util.list)
-  //Misc
-  .option('-q, --query <query>', 'Query')
-  .option('-e, --enable_filters <filter>', 'Enable specific filter(s)', util.list)
-  // SSH options
-  .option('-u, --user <user>', 'SSH user')
-  .option('-p, --port <port>', 'SSH port')
-  .option('-K, --keyfile <keyfile>', 'SSH keyfile')
-  .option('-c, --ssh_command <ssh_command>', 'Command to execute')
-  .option('-P, --private_ip', 'Use private ip when connecting')
-  .option('--ansible <ansible_playbook>', 'Run an ansible playbook on target host(s)')
-  // Boolean options
-  .option('-A, --run_on_all', 'Execute on all found hosts')
-  .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')
-  .option('--autocompletion', 'Install autocompletion')
-  .parse(process.argv)
-
-
-if (commander.autocompletion) {
-  console.log(colors.green('Done! You might need to restart your terminal'))
-  complete.setupShellInitFile()
-  return
-}
-
-var force_regions = commander.force_regions || config.force_regions
-
-var alias
-
-if (commander.args.length > 0) {
-  if (config.alias[commander.args.join(' ')]) {
-    alias = config.alias[commander.args.join(' ')]
-  }
-}
-
-var parse_arguments = function () {
-  var regions = []
-  var accounts = []
-
-  if (commander.region) {
-    regions = commander.region
-  }
-
-  if (commander.account || (alias && alias.accounts)) {
-    accounts = config.credentials.filter(function (account) {
-      return util.contains_with_lowercase(account.name.toLowerCase(), commander.account ? commander.account : alias.accounts) || (account.public_token && util.contains_with_lowercase(account.public_token.toLowerCase(), commander.account ? commander.account : alias.accounts))
-    })
-
-    accounts = accounts.filter(util.check_account_type)
-
-    if (!accounts.length) {
-      return console.log('No accounts found with this name or public token'.red)
-    }
-  } else {
-    if (!config.credentials || !config.credentials.length) {
-      return console.log('No accounts defined in config'.red)
-    }
-
-    accounts = config.credentials.filter(util.check_account_type)
-  }
-
-  if (commander.type) {
-    var valid_types = []
-
-    commander.type.forEach(function (type) {
-      if (config.plugins.indexOf(type.toLowerCase()) === -1) {
-        console.log('Ignoring invalid type %s, valid types: [%s]'.red, type, config.plugins)
-      } else {
-        valid_types.push(type.toLowerCase())
-      }
-    })
-
-    accounts = accounts.filter(function (account) {
-      return util.contains(account.type.toLowerCase(), valid_types)
-    })
-  }
-
-  if (!accounts.length) {
-    return console.log('No valid accounts found'.red)
-  }
-
-  setup_filters(accounts, regions)
-}
-
-var setup_filters = function (accounts, regions) {
-  var filters = ''
-  var filter_list = []
-
-  if (commander.enable_filters || (config.enabled_filters && config.enabled_filters.length)) {
-    if (commander.enable_filters) {
-      filter_list = filter_list.concat(commander.enable_filters.filter(function (filter) {
-        if (config.allowed_filters.indexOf(filter.toLowerCase()) > -1) {
-          return true
-        } else {
-          console.log('Ignoring invalid/disallowed filter %s'.red, filter)
-          return false
-        }
-      }))
-    }
-
-    if (config.enabled_filters && config.enabled_filters.length) {
-      filter_list = filter_list.concat(config.enabled_filters)
-    }
-
-    filter_list = util.deduplicate_array(filter_list)
-
-    async.each(filter_list, function (filter, next) {
-      try {
-        require('./plugins/' + filter.toLowerCase()).filter(config, function (filter) {
-          filters += filter
-          next()
+        account.regions.forEach(function (region) {
+          if (regions.indexOf(region) === -1) {
+            regions.push(region)
+          }
         })
-      } catch (error) {
-        next(error)
-      }
-    }, function (error) {
-      if (error) {
-        console.log('Something went wrong while setting up filters: %s'.red, error)
-      }
+      })
+    }
 
-      gather_servers(accounts, regions, filters.trim())  
-    })
-  } else {
-    gather_servers(accounts, regions, filters)
-  }
-}
-
-var gather_servers = function (accounts, regions, filters) {
-  var accounts_to_use = []
-
-  if (!regions || !regions.length) {
-    regions = []
     accounts.forEach(function (account) {
-      if (!account.regions) {
-        account.regions = require('./plugins/' + account.type).regions
-      }
-
-      account.regions.forEach(function (region) {
-        if (regions.indexOf(region) === -1) {
-          regions.push(region)
+      if ((options.force_regions && options.region) || (alias && alias.regions)) {
+        account.regions = options.region ? options.region : alias.regions
+        account.regions = account.regions.filter(function (region) {
+          return require('./plugins/' + account.type).regions.indexOf(region) > -1
+        })
+      } else {
+        if (!account.regions) {
+          account.regions = require('./plugins/' + account.type).regions
         }
-      })
-    })
-  }
 
-  accounts.forEach(function (account) {
-    if ((force_regions && commander.region) || (alias && alias.regions)) {
-      account.regions = commander.region ? commander.region : alias.regions
-      account.regions = account.regions.filter(function (region) {
-        return require('./plugins/' + account.type).regions.indexOf(region) > -1
-      })
-    } else {
-      if (!account.regions) {
-        account.regions = require('./plugins/' + account.type).regions
+        account.regions = account.regions.filter(function (region) {
+          return regions.indexOf(region) > -1
+        })
       }
 
-      account.regions = account.regions.filter(function (region) {
-        return regions.indexOf(region) > -1
-      })
-    }
-
-    if (account.regions.length) {
-      accounts_to_use.push(account)
-      console.log('Using %s account %s (%s)' + (account.public_token ? ' - %s' : '').green, colors.blue(account.type), colors.green(account.name), colors.yellow(account.regions), account.public_token ? colors.red(account.public_token) : '')
-    }
-  })
-
-  if (!accounts_to_use.length) {
-    return console.log('No accounts with correct regions found'.red)
-  }
-
-  async.concat(accounts_to_use, function (account, next) {
-    util.find_servers(account, function callback (servers) {
-      next(null, servers)
+      if (account.regions.length) {
+        accounts_to_use.push(account)
+        console.log('Using %s account %s (%s)' + (account.public_token ? ' - %s' : '').green, colors.blue(account.type), colors.green(account.name), colors.yellow(account.regions), account.public_token ? colors.red(account.public_token) : '')
+      }
     })
-  }, function (error, servers) {
-    if (!servers.length) {
-      return console.log('No matching servers found'.red)
+
+    if (!accounts_to_use.length) {
+      return console.log('No accounts with correct regions found'.red)
     }
 
-    filter_results(filters, servers)
-  })
-}
-
-var filter_results = function (filters, servers) {
-  if (commander.query || commander.region || commander.servername || commander.hostname || commander.image || commander.ip || commander.id || alias || (filters && filters.length)) {
-    try {
-      var query = parser.generate_query_ast_sync(build_query(filters))
-    } catch (error) {
-      console.log('Invalid query: %s'.red, error.message)
-      return
-    }
-
-    async.concat(servers, function (server, next) {
-      parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
-        next(error, matches ? server : [])
+    async.concat(accounts_to_use, function (account, next) {
+      util.find_servers(account, function callback (servers) {
+        next(null, servers)
       })
     }, function (error, servers) {
+      if (error) {
+        // TODO error handling
+      }
+
       if (!servers.length) {
         return console.log('No matching servers found'.red)
       }
 
-      display_results(servers)
+      filter_results(filters, servers)
     })
-  } else {
-    display_results(servers)
-  }
-}
-
-var build_query = function (filters) {
-  var query = ''
-
-  if (commander.servername) {
-    query += build_query_part('name', commander.servername)
   }
 
-  if (commander.region) {
-    query += build_query_part('region', commander.region)
-  }
-
-  if (commander.hostname) {
-    query += build_query_part('hostname', commander.hostname)
-  }
-
-  if (commander.image) {
-    query += build_query_part('image', commander.image)
-  }
-
-  if (commander.ip) {
-    query += build_query_part('ip', commander.ip)
-  }
-
-  if (commander.id) {
-    query += build_query_part('id', commander.id)
-  }
-
-  if (filters) {
-    query += ' AND (' + filters + ')'
-  }
-
-  if (commander.query) {
-    if (!query.length) {
-      query += commander.query
-    } else {
-      query += ' AND (' + commander.query + ')'
-    }
-  }
-
-  if (alias && alias.query) {
-    query += ' AND (' + alias.query + ')'
-  }
-
-  query = query.trim()
-
-  if (util.starts_with(query, 'AND')) {
-    query = query.substring(3)
-  }
-
-  if (util.starts_with(query, 'OR')) {
-    query = query.substring(2)
-  }
-
-  return query.trim()
-}
-
-var build_query_part = function (key_name, key) {
-  var query = ' AND ('
-  var split_count = key.length
-
-  key.forEach(function (split) {
-    split_count--
-
-    query += key_name + ' CONTAINS' + ' \'' + split + '\''
-
-    if (split_count) {
-      query += ' OR '
-    }
-  })
-
-  query += ')'
-
-  return query
-}
-
-var display_results = function (result) {
-  var color_index = 0
-  var index = 0
-
-  result.forEach(function (server) {
-    require('./plugins/' + server.account.type).display(server, index+++1)
-  })
-
-  if (result.length == 1 && config.auto_connect_on_one_result) {
-    return prepare_ssh(result[0], function (ssh_config) {
-      if (commander.ansible) {
-        ansible([{ server: result[0], ssh_config: ssh_config }])
-      } else {
-        ssh(result[0], ssh_config)
+  var filter_results = function (filters, servers) {
+    if (options.query || options.region || options.servername || options.hostname || options.image || options.ip || options.id || alias || (filters && filters.length)) {
+      try {
+        var query = parser.generate_query_ast_sync(build_query(filters))
+      } catch (error) {
+        console.log('Invalid query: %s'.red, error.message)
+        return
       }
-    })
-  }
 
-  if ((((alias && alias.run_on_all) || commander.run_on_all) && ((alias && alias.command) || commander.ssh_command)) || (commander.ansible && commander.run_on_all)) {
-    return async.mapSeries(result, function (server, next) {
-      prepare_ssh(server, function (ssh_config) {
-        var color = util.colors[color_index++]
-
-        if (color_index > (util.colors.length - 1)) {
-          color_index = 0
-        }
-
-        next(null, { server: server, ssh_config: ssh_config, disable_tt: color })
-      })
-    }, function (error, ssh_results) {
-      if (commander.ansible) {
-        ansible(ssh_results)
-      } else {
-        ssh_results.forEach(function (ssh_result) {
-          ssh(ssh_result.server, ssh_result.ssh_config, ssh_result.disable_tt)
+      async.concat(servers, function (server, next) {
+        parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
+          next(error, matches ? server : [])
         })
-      }
-    })
-  }
-
-  var reader = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  })
-
-  reader.question("Which server do you want to connect to? ", function (index) {
-    var server = result[index - 1]
-    reader.close()
-
-    if (!server) {
-      return console.log('Invalid selection'.red)
-    }
-
-    prepare_ssh(server, function (ssh_config) {
-      if (commander.ansible) {
-        ansible([{ server: server, ssh_config: ssh_config }])
-      } else {
-        ssh(server, ssh_config)
-      }
-    })
-  })
-}
-
-var prepare_ssh = function (server, callback) {
-  var ssh_config
-
-  if (!config.ssh_config.length) {
-    return console.log('Please specify a default ssh config'.red)
-  }
-
-  function iterate_configs (the_config, next) {
-    var account_match = false
-    var query
-
-    if (the_config.priority === 0) {
-      ssh_config = the_config    
-      return next()
-    }
-
-    if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.public_token && util.contains_with_lowercase(server.account.public_token.toLowerCase(), the_config.accounts)))) {
-      account_match = true
-    }
-
-    if (!the_config.query) {
-      if (account_match) {
-        if (!ssh_config || the_config.priority > ssh_config.priority) {
-          ssh_config = the_config
+      }, function (error, servers) {
+        if (error) {
+          // TODO error handling
         }
-      }
 
-      return next()
+        if (!servers.length) {
+          return console.log('No matching servers found'.red)
+        }
+
+        display_results(servers)
+      })
+    } else {
+      display_results(servers)
+    }
+  }
+
+  var build_query = function (filters) {
+    var query = ''
+
+    if (options.servername) {
+      query += build_query_part('name', options.servername)
     }
 
-    try {
-      query = parser.generate_query_ast_sync(the_config.query)
-    } catch (error) {
-      return console.log('Invalid ssh config query: %s'.red, error.message)
+    if (options.region) {
+      query += build_query_part('region', options.region)
     }
 
-    parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
-      if (error) {
-        return console.log('Error parsing with ssh config query %s'.red, error)
+    if (options.hostname) {
+      query += build_query_part('hostname', options.hostname)
+    }
+
+    if (options.image) {
+      query += build_query_part('image', options.image)
+    }
+
+    if (options.ip) {
+      query += build_query_part('ip', options.ip)
+    }
+
+    if (options.id) {
+      query += build_query_part('id', options.id)
+    }
+
+    if (filters) {
+      query += ' AND (' + filters + ')'
+    }
+
+    if (options.query) {
+      if (!query.length) {
+        query += options.query
+      } else {
+        query += ' AND (' + options.query + ')'
+      }
+    }
+
+    // TODO remove references of alias
+    if (alias && alias.query) {
+      query += ' AND (' + alias.query + ')'
+    }
+
+    query = query.trim()
+
+    if (util.starts_with(query, 'AND')) {
+      query = query.substring(3)
+    }
+
+    if (util.starts_with(query, 'OR')) {
+      query = query.substring(2)
+    }
+
+    return query.trim()
+  }
+
+  var build_query_part = function (key_name, key) {
+    var query = ' AND ('
+    var split_count = key.length
+
+    key.forEach(function (split) {
+      split_count--
+
+      query += key_name + ' CONTAINS' + ' \'' + split + '\''
+
+      if (split_count) {
+        query += ' OR '
+      }
+    })
+
+    query += ')'
+
+    return query
+  }
+
+  var display_results = function (result) {
+    var color_index = 0
+    var index = 0
+
+    result.forEach(function (server) {
+      require('./plugins/' + server.account.type).display(server, index++ + 1)
+    })
+
+    if (result.length === 1 && options.auto_connect_on_one_result) {
+      return prepare_ssh(result[0], function (ssh_config) {
+        if (options.ansible) {
+          ansible([{ server: result[0], ssh_config: ssh_config }])
+        } else {
+          ssh(result[0], ssh_config)
+        }
+      })
+    }
+
+    if ((((alias && alias.run_on_all) || options.run_on_all) && ((alias && alias.command) || options.ssh_command)) || (options.ansible && options.run_on_all)) {
+      return async.mapSeries(result, function (server, next) {
+        prepare_ssh(server, function (ssh_config) {
+          var color = util.colors[color_index++]
+
+          if (color_index > (util.colors.length - 1)) {
+            color_index = 0
+          }
+
+          next(null, { server: server, ssh_config: ssh_config, disable_tt: color })
+        })
+      }, function (error, ssh_results) {
+        if (error) {
+          // TODO error handling
+        }
+
+        if (options.ansible) {
+          ansible(ssh_results)
+        } else {
+          ssh_results.forEach(function (ssh_result) {
+            ssh(ssh_result.server, ssh_result.ssh_config, ssh_result.disable_tt)
+          })
+        }
+      })
+    }
+
+    var reader = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+
+    reader.question('Which server do you want to connect to? ', function (index) {
+      var server = result[index - 1]
+      reader.close()
+
+      if (!server) {
+        return console.log('Invalid selection'.red)
       }
 
-      if (matches) {
-        if ((the_config.accounts && account_match) || !the_config.accounts) {
+      prepare_ssh(server, function (ssh_config) {
+        if (options.ansible) {
+          ansible([{ server: server, ssh_config: ssh_config }])
+        } else {
+          ssh(server, ssh_config)
+        }
+      })
+    })
+  }
+
+  var prepare_ssh = function (server, callback) {
+    var ssh_config
+
+    if (!options.ssh_config.length) {
+      return console.log('Please specify a default ssh config'.red)
+    }
+
+    function iterate_configs (the_config, next) {
+      var account_match = false
+      var query
+
+      if (the_config.priority === 0) {
+        ssh_config = the_config
+        return next()
+      }
+
+      if (the_config.accounts && (util.contains_with_lowercase(server.account.name.toLowerCase(), the_config.accounts) || (server.account.public_token && util.contains_with_lowercase(server.account.public_token.toLowerCase(), the_config.accounts)))) {
+        account_match = true
+      }
+
+      if (!the_config.query) {
+        if (account_match) {
           if (!ssh_config || the_config.priority > ssh_config.priority) {
             ssh_config = the_config
           }
         }
+
+        return next()
       }
 
-      next(error)
-    })
-  }
-
-  function next (error) {
-    callback(ssh_config)
-  }
-
-  async.each(config.ssh_config, iterate_configs, next)
-}
-
-var ssh = function (server, ssh_config, disable_tt) {
-  // TODO Merge default conf with ssh config, config option?
-  if (ssh_config) {
-    return require('./plugins/' + server.account.type).ssh(server, build_ssh_config(ssh_config, disable_tt))
-  }
-
-  console.log('No matching ssh config, please specify a default ssh config'.red)
-}
-
-var ansible = function (servers) {
-  var inventory_file = path.resolve(config.ansible_dir, (new Date()).valueOf().toString() + '.sh')
-
-  var ansible_inventory = {
-    all: {
-      hosts: [],
-      vars: {
-        "ansible_connection": "ssh"
+      try {
+        query = parser.generate_query_ast_sync(the_config.query)
+      } catch (error) {
+        return console.log('Invalid ssh config query: %s'.red, error.message)
       }
-    },
-    _meta: {
-      hostvars: {}
-    }
-  }
 
-  servers.forEach(function (server) {
-    server.ssh_config = build_ssh_config(server.ssh_config)
-    var hostname = (server.ssh_config.private_ip ? server.server['private-ip'] : server.server.hostname)
-    
-    ansible_inventory.all.hosts.push(hostname)
-    
-    var options = {
-      ansible_ssh_user: server.ssh_config.user
-    }
+      parser.match(JSON.parse(JSON.stringify(server)), query, function (error, matches) {
+        if (error) {
+          return console.log('Error parsing with ssh config query %s'.red, error)
+        }
 
-    if (server.ssh_config.port) {
-      options.ansible_ssh_port = server.ssh_config.port
+        if (matches) {
+          if ((the_config.accounts && account_match) || !the_config.accounts) {
+            if (!ssh_config || the_config.priority > ssh_config.priority) {
+              ssh_config = the_config
+            }
+          }
+        }
+
+        next(error)
+      })
     }
 
-    if (server.ssh_config.keyfile) {
-      options.ansible_ssh_private_key_file = server.ssh_config.keyfile
-    }
-
-    ansible_inventory._meta.hostvars[hostname] = options
-  })
-
-  fs.mkdir(config.ansible_dir, function (error) {})
-  fs.writeFileSync(inventory_file, '#!/bin/sh\necho \'' + JSON.stringify(ansible_inventory) + '\'', 'utf8')
-  fs.chmodSync(inventory_file, 0755)
-
-  var child = require('child_process').spawn('ansible-playbook', [commander.ansible, '-i', inventory_file], { stdio: 'inherit' })
-  child.on('exit', function (code, signal) {
-    fs.unlink(inventory_file, function (error) {
+    function next (error) {
       if (error) {
-        console.log('Error removing ansible inventory: %s', inventory_file)
+        // TODO error handling
       }
+
+      callback(ssh_config)
+    }
+
+    async.each(options.ssh_config, iterate_configs, next)
+  }
+
+  var build_ssh_config = function (ssh_config, disable_tt) {
+    var ssh_options = {
+      user: ssh_config.user,
+      port: ssh_config.port,
+      keyfile: ssh_config.keyfile,
+      command: ssh_config.command,
+      disable_tt: disable_tt,
+      private_ip: ssh_config.private_ip,
+      extra_options: []
+    }
+
+    if (alias && alias.user) {
+      ssh_options.user = alias.user
+    }
+
+    if (options.user) {
+      ssh_options.user = options.user
+    }
+
+    if (alias && alias.port) {
+      ssh_options.port = alias.port
+    }
+
+    if (options.port) {
+      ssh_options.port = options.port
+    }
+
+    if (alias && alias.keyfile) {
+      ssh_options.keyfile = alias.keyfile
+    }
+
+    if (options.keyfile) {
+      ssh_options.keyfile = options.keyfile
+    }
+
+    if (alias && alias.command) {
+      ssh_options.command = alias.command
+    }
+
+    if (options.ssh_command) {
+      ssh_options.command = options.ssh_command
+    }
+
+    if (alias && alias.private_ip) {
+      ssh_options.private_ip = true
+    }
+
+    if (options.private_ip) {
+      ssh_options.private_ip = true
+    }
+
+    ssh_options.port = ssh_options.port ? ssh_options.port : 22
+    ssh_options.user = ssh_options.user ? ssh_options.user : 'root'
+
+    if (ssh_config.options && ssh_config.options.length) {
+      ssh_options.extra_options = ssh_config.options
+    }
+
+    if (alias && alias.options) {
+      ssh_options.extra_options = alias.options
+    }
+
+    return ssh_options
+  }
+
+  var ssh = function (server, ssh_config, disable_tt) {
+    // TODO Merge default conf with ssh config, config option?
+    if (ssh_config) {
+      return require('./plugins/' + server.account.type).ssh(server, build_ssh_config(ssh_config, disable_tt))
+    }
+
+    console.log('No matching ssh config, please specify a default ssh config'.red)
+  }
+
+  var ansible = function (servers) {
+    var inventory_file = path.resolve(options.ansible_dir, (new Date()).valueOf().toString() + '.sh')
+
+    var ansible_inventory = {
+      all: {
+        hosts: [],
+        vars: {
+          ansible_connection: 'ssh'
+        }
+      },
+      _meta: {
+        hostvars: {}
+      }
+    }
+
+    servers.forEach(function (server) {
+      server.ssh_config = build_ssh_config(server.ssh_config)
+      var hostname = (server.ssh_config.private_ip ? server.server['private-ip'] : server.server.hostname)
+
+      ansible_inventory.all.hosts.push(hostname)
+
+      var ansible_options = {
+        ansible_ssh_user: server.ssh_config.user
+      }
+
+      if (server.ssh_config.port) {
+        ansible_options.ansible_ssh_port = server.ssh_config.port
+      }
+
+      if (server.ssh_config.keyfile) {
+        ansible_options.ansible_ssh_private_key_file = server.ssh_config.keyfile
+      }
+
+      ansible_inventory._meta.hostvars[hostname] = ansible_options
     })
-  })
+
+    if (!fs.existsSync(options.ansible_dir)) {
+      fs.mkdirSync(options.ansible_dir)
+    }
+
+    fs.writeFileSync(inventory_file, '#!/bin/sh\necho \'' + JSON.stringify(ansible_inventory) + '\'', 'utf8')
+    fs.chmodSync(inventory_file, '0755')
+
+    var child = require('child_process').spawn('ansible-playbook', [options.ansible, '-i', inventory_file], { stdio: 'inherit' })
+    child.on('exit', function (code, signal) {
+      fs.unlink(inventory_file, function (error) {
+        if (error) {
+          console.log('Error removing ansible inventory: %s', inventory_file)
+        }
+      })
+    })
+  }
+
+  return Sift
 }
-
-var build_ssh_config = function (ssh_config, disable_tt) {
-  var options = {
-    user: ssh_config.user,
-    port: ssh_config.port,
-    keyfile: ssh_config.keyfile,
-    command: ssh_config.command,
-    disable_tt: disable_tt,
-    private_ip: ssh_config.private_ip,
-    extra_options: []
-  }
-
-  if (alias && alias.user) {
-    options.user = alias.user
-  }
-
-  if (commander.user) {
-    options.user = commander.user
-  }
-
-  if (alias && alias.port) {
-    options.port = alias.port
-  }
-
-  if (commander.port) {
-    options.port = commander.port
-  }
-
-  if (alias && alias.keyfile) {
-    options.keyfile = alias.keyfile
-  }
-
-  if (commander.keyfile) {
-    options.keyfile = commander.keyfile
-  }
-
-  if (alias && alias.command) {
-    options.command = alias.command
-  }
-
-  if (commander.ssh_command) {
-    options.command = commander.ssh_command
-  }
-
-  if (alias && alias.private_ip) {
-    options.private_ip = true
-  }
-
-  if (commander.private_ip) {
-    options.private_ip = true
-  }
-
-  options.port = options.port ? options.port : 22
-  options.user = options.user ? options.user : 'root'
-
-  if (ssh_config.options && ssh_config.options.length) {
-    options.extra_options = ssh_config.options
-  }
-
-  if (alias && alias.options) {
-    options.extra_options = alias.options
-  }
-
-  return options
-}
-
-// Commands
-
-if (commander.list_accounts) {
-  config.credentials.forEach(function (account) {
-    console.log('%s %s (%s)' + (account.public_token ? ' - %s' : ''), account.name.green, account.type.blue, colors.yellow(account.regions ? account.regions : require('./plugins/' + account.type).regions), account.public_token ? colors.red(account.public_token) : '')
-  })
-  return
-}
-
-if (commander.keys) {
-  try {
-    console.log("Keys for %s: %s".white, colors.blue(commander.keys), require('./plugins/' + commander.keys).keys.join(", "))
-  } catch (error) {
-    console.error('Provided type \'%s\' does not exist'.red, commander.keys)
-  }
-  return
-}
-
-parse_arguments()

@@ -14,8 +14,8 @@ var util = module.exports = {
     var user_config
     var config_path = path.resolve(util.home, '.sift.json')
     var the_config = require('./config')
-    var final_config = {};
-    
+    var final_config = {}
+
     if (fs.existsSync(config_path)) {
       try {
         user_config = require(config_path)
@@ -24,7 +24,7 @@ var util = module.exports = {
         return null
       }
 
-      if (JSON.stringify(the_config) == JSON.stringify(user_config)) {
+      if (JSON.stringify(the_config) === JSON.stringify(user_config)) {
         console.log('Please update the default configuration in %s'.red, config_path)
         return null
       }
@@ -45,8 +45,8 @@ var util = module.exports = {
           json = JSON.parse(alias_file)
         } catch (error) {
           return console.log('Error reading %s, invalid syntax?'.red, alias_include)
-        }   
-        
+        }
+
         Object.keys(json).forEach(function (key) {
           if (!final_config.alias[key]) {
             final_config.alias[key] = json[key]
@@ -96,7 +96,7 @@ var util = module.exports = {
       default_args.unshift('-tt')
     }
 
-    var ssh_args = (options.extra_options && options.extra_options.length) ? options.extra_options.concat(default_args) : default_args;
+    var ssh_args = (options.extra_options && options.extra_options.length) ? options.extra_options.concat(default_args) : default_args
 
     if (options.command) {
       ssh_args.push(options.command)
@@ -108,7 +108,7 @@ var util = module.exports = {
       var child = require('child_process').spawn('ssh', ssh_args)
 
       var output = function (data) {
-        console.log(colors[options.disable_tt]('[' + server.id + '] '+ data.toString().replace(/\n$/, '')))
+        console.log(colors[options.disable_tt]('[' + server.id + '] ' + data.toString().replace(/\n$/, '')))
       }
 
       child.stdout.on('data', output)
@@ -122,7 +122,7 @@ var util = module.exports = {
 
   deduplicate_array: function (array) {
     return array.filter(function (elem, pos) {
-      return array.indexOf(elem) == pos;
+      return array.indexOf(elem) === pos
     })
   },
 
@@ -156,11 +156,12 @@ var util = module.exports = {
   // https://github.com/remy/nodemon/blob/master/lib/utils/merge.js
   merge: function (one, two) {
     var result = one
+
     Object.getOwnPropertyNames(two).forEach(function (key) {
       if (one[key] === undefined) {
         result[key] = two[key]
       }
-    });
+    })
 
     Object.getOwnPropertyNames(one).forEach(function (key) {
       var value = one[key]
@@ -174,12 +175,12 @@ var util = module.exports = {
           if (value.length === 0 && two[key].length) {
             result[key] = two[key].slice(0)
           }
-        } else if (typeof value === "object") {
+        } else if (typeof value === 'object') {
           result[key] = util.merge(value, two[key])
         }
       }
-    });
+    })
 
-    return result;
+    return result
   }
 }

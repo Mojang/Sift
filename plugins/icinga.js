@@ -1,11 +1,12 @@
 var unirest = require('unirest')
 var util = require('../util')
-var icinga = module.exports = {
+module.exports = {
 
-  filter: function(config, callback) {
+  filter: function (config, callback) {
     var filters = ''
+
     if (!config.icinga_host || !config.icinga_user || !config.icinga_pass) {
-      console.log('Please define icinga_host, icinga_user & icinga_pass in the config'.red);
+      console.log('Please define icinga_host, icinga_user & icinga_pass in the config'.red)
       return callback('')
     }
 
@@ -19,7 +20,7 @@ var icinga = module.exports = {
       } catch (error) {
         return console.log('Something went wrong when checking icinga'.red)
       }
-      
+
       if (!response.body.status || !response.body.status.service_status) {} else {
         response.body.status.service_status.forEach(function (item) {
           filters += ' OR hostname = ' + item.host_name
@@ -31,14 +32,14 @@ var icinga = module.exports = {
           filters += ' OR hostname = ' + item.host_name
         })
       }
-     
+
       filters = filters.trim()
       filters = filters.substring(2)
-     
+
       if (!filters.length) {
         console.log('No hosts are down, ignoring icinga filter'.red)
       }
-     
+
       callback(filters)
     })
   }

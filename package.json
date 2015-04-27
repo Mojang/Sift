@@ -4,7 +4,7 @@
   "license": "MIT",
   "preferGlobal": "true",
   "bin": {
-    "sift": "index.js"
+    "sift": "./bin/sift.js"
   },
   "version": "1.0.6",
   "main": "index.js",
@@ -34,7 +34,8 @@
     "unirest": "^0.2.7"
   },
   "devDependencies": {
+    "mocha": "^2.0.1",
     "should": "^4.1.0",
-    "mocha": "^2.0.1"
+    "standard": "^3.7.2"
   }
 }
