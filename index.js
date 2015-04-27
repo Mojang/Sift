@@ -9,6 +9,8 @@ module.exports = function (options, alias) {
 
   var Sift = {}
 
+  Sift.util = util
+
   Sift.gather_servers = function (accounts, regions, filters) {
     var accounts_to_use = []
 
