@@ -6,6 +6,7 @@ var omelette = require('omelette')
 var config = util.load_config()
 var pjson = require('../package.json')
 var async = require('async')
+var colors = require('colors')
 
 if (!config) {
   return

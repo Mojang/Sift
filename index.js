@@ -11,7 +11,11 @@ module.exports = function (options, alias) {
 
   Sift.util = util
 
-  Sift.gather_servers = function (accounts, regions, filters) {
+  Sift.gather_servers = function (accounts, regions, filters, callback) {
+    if (options.ansible && typeof callback !== 'function') {
+      callback = function (callback) {}
+    }
+
     var accounts_to_use = []
 
     if (!regions || !regions.length) {
@@ -68,11 +72,11 @@ module.exports = function (options, alias) {
         return console.log('No matching servers found'.red)
       }
 
-      filter_results(filters, servers)
+      filter_results(filters, servers, callback)
     })
   }
 
-  var filter_results = function (filters, servers) {
+  var filter_results = function (filters, servers, callback) {
     if (options.query || options.region || options.servername || options.hostname || options.image || options.ip || options.id || alias || (filters && filters.length)) {
       try {
         var query = parser.generate_query_ast_sync(build_query(filters))
@@ -94,10 +98,10 @@ module.exports = function (options, alias) {
           return console.log('No matching servers found'.red)
         }
 
-        display_results(servers)
+        display_results(servers, callback)
       })
     } else {
-      display_results(servers)
+      display_results(servers, callback)
     }
   }
 
@@ -177,7 +181,7 @@ module.exports = function (options, alias) {
     return query
   }
 
-  var display_results = function (result) {
+  var display_results = function (result, callback) {
     var color_index = 0
     var index = 0
 
@@ -188,7 +192,7 @@ module.exports = function (options, alias) {
     if (result.length === 1 && options.auto_connect_on_one_result) {
       return prepare_ssh(result[0], function (ssh_config) {
         if (options.ansible) {
-          ansible([{ server: result[0], ssh_config: ssh_config }])
+          ansible([{ server: result[0], ssh_config: ssh_config }], callback)
         } else {
           ssh(result[0], ssh_config)
         }
@@ -212,7 +216,7 @@ module.exports = function (options, alias) {
         }
 
         if (options.ansible) {
-          ansible(ssh_results)
+          ansible(ssh_results, callback)
         } else {
           ssh_results.forEach(function (ssh_result) {
             ssh(ssh_result.server, ssh_result.ssh_config, ssh_result.disable_tt)
@@ -236,7 +240,7 @@ module.exports = function (options, alias) {
 
       prepare_ssh(server, function (ssh_config) {
         if (options.ansible) {
-          ansible([{ server: server, ssh_config: ssh_config }])
+          ansible([{ server: server, ssh_config: ssh_config }], callback)
         } else {
           ssh(server, ssh_config)
         }
@@ -382,7 +386,7 @@ module.exports = function (options, alias) {
     console.log('No matching ssh config, please specify a default ssh config'.red)
   }
 
-  var ansible = function (servers) {
+  var ansible = function (servers, callback) {
     var inventory_file = path.resolve(options.ansible_dir, (new Date()).valueOf().toString() + '.sh')
 
     var ansible_inventory = {
@@ -431,6 +435,8 @@ module.exports = function (options, alias) {
         if (error) {
           console.log('Error removing ansible inventory: %s', inventory_file)
         }
+
+        callback({ code: code, signal: signal })
       })
     })
   }
