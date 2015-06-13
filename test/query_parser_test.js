@@ -1,4 +1,5 @@
 /* eslint-env node, mocha */
+/* jshint expr: true */
 
 var should = require('should') // eslint-disable-line no-unused-vars
 
