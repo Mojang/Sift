@@ -301,7 +301,6 @@ Sift supports the following command arguments to modify the behaviour when conne
 -  `-K, --keyfile <keyfile>`          SSH keyfile
 -  `-c, --ssh_command <ssh_command>`  Command to run on host(s)
 -  `-P, --private_ip`                 Use the private ip of the host when connecting
--  `--ansible <ansible_playbook>`     Run an ansible playbook on target host(s)
 
 #### SSH options
 SSH options are defined in the config as "ssh_config".
@@ -369,7 +368,12 @@ In the config, you need to provide `icinga_host`, `icinga_user`, and `icinga_pas
 To enable the filter, can use the `-e <filter>` commandline argument, or add "icinga" to the enabled_filters list in config.js
 
 ### Ansible support
-It is possible to run an ansible playbook on result set of a filtering. If you have the following playbook saved in a file named `uptime-playbook`:
+It is possible to run an ansible playbook on result set of a filtering. Sift support the following arguments to run ansible playbooks:
+
+-  `--ansible <ansible_playbook>`     Run an ansible playbook on target host(s)
+-  `--ansible_extra_args <ansible_extra_args>` Pass extra arguments to ansible-playbook
+
+If you have the following playbook saved in a file named `uptime-playbook.yml`:
 
 ```yaml
 ---
@@ -385,7 +389,13 @@ It is possible to run an ansible playbook on result set of a filtering. If you h
 You can use it with sift like this:
 
 ```bash
-$ sift -q 'name contains session' --ansible uptime-playbook -A
+$ sift -q 'name contains session' --ansible uptime-playbook.yml -A
+```
+
+And if you need to pass in extra arguments to ansible:
+
+```bash
+$ sift -q 'name contains session' --ansible uptime-playbook.yml --ansible_extra_args 'some_var=some_value' -A
 ```
 
 ### Local provider
