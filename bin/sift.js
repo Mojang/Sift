@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 
+
+var config_file
+var index_of_file_config = process.argv.indexOf('-C')
+if (index_of_file_config > -1) {
+  if (process.argv.length > index_of_file_config + 1) {
+    config_file = process.argv[index_of_file_config + 1]  
+  }
+}
+
 var util = require('../util')
+var pjson = require('../package.json')
 var commander = require('commander')
 var omelette = require('omelette')
-var config = util.load_config()
-var pjson = require('../package.json')
+var config = util.load_config(config_file)
 var async = require('async')
 var colors = require('colors')
 
@@ -114,11 +123,13 @@ commander
   .option('-A, --run_on_all', 'Execute on all found hosts')
   .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')
   .option('--autocompletion', 'Install autocompletion')
+  .option('-C <file>', 'Sift config file')
   .parse(process.argv)
 
+
 if (commander.autocompletion) {
-  console.log(colors.green('Done! You might need to restart your terminal'))
   complete.setupShellInitFile()
+  console.log(colors.green('Done! You might need to restart your terminal'))
   return
 }
 

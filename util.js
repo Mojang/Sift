@@ -7,18 +7,28 @@ var typesMatch = function (a, b) {
   return (typeof a === typeof b) && (Array.isArray(a) === Array.isArray(b))
 }
 
+if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+}
+
 var util = module.exports = {
   home: process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE,
 
-  load_config: function () {
+  load_config: function (config_file) {
     var user_config
-    var config_path = path.resolve(util.home, '.sift.json')
+    var config_path = config_file ? path.resolve(config_file) : path.resolve(util.home, '.sift.json')
     var the_config = require('./config')
     var final_config = {}
 
     if (fs.existsSync(config_path)) {
       try {
-        user_config = require(config_path)
+        if (config_path.endsWith('.json')) {
+          user_config = require(config_path)
+        } else {
+          user_config = JSON.parse(fs.readFileSync(config_path))
+        }
       } catch (error) {
         console.log('Could not load user configuration, please correct the syntax of %s in your home directory'.red, config_path)
         return null
