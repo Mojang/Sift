@@ -433,7 +433,17 @@ module.exports = function (options, alias) {
     fs.writeFileSync(inventory_file, '#!/bin/sh\necho \'' + JSON.stringify(ansible_inventory) + '\'', 'utf8')
     fs.chmodSync(inventory_file, '0755')
 
-    var ansible_args = options.ansible_extra_args ? [options.ansible, '-e', options.ansible_extra_args, '-i', inventory_file] : [options.ansible, '-i', inventory_file]
+    var ansible_args = []
+    ansible_args.push(options.ansible, '-i', inventory_file)
+
+    if (options.ansible_extra_args) {
+      ansible_args.push('-e', options.ansible_extra_args)
+    }
+    
+    if (options.verbose) {
+      ansible_args.push('-vvvv')
+      console.log('Running \'ansible-playbook ' + ansible_args.join(' ') + '\'')
+    }  
 
     var child = require('child_process').spawn('ansible-playbook', ansible_args, { stdio: 'inherit' })
     child.on('exit', function (code, signal) {

@@ -122,7 +122,9 @@ commander
   // Boolean options
   .option('-A, --run_on_all', 'Execute on all found hosts')
   .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')
+  .option('--verbose', 'Verbose mode')
   .option('--autocompletion', 'Install autocompletion')
+  // Config
   .option('-C <file>', 'Sift config file')
   .parse(process.argv)
 
