@@ -404,6 +404,7 @@ module.exports = function (options, alias) {
     servers.forEach(function (server) {
       server.ssh_config = build_ssh_config(server.ssh_config)
       var hostname = (server.ssh_config.private_ip ? server.server['private-ip'] : server.server.hostname)
+      var region = server.server.region.replace(/-/g, '_')
 
       ansible_inventory.all.hosts.push(hostname)
 
@@ -419,12 +420,15 @@ module.exports = function (options, alias) {
         ansible_options.ansible_ssh_private_key_file = server.ssh_config.keyfile
       }
 
+      ansible_options.ansible_instance_region = region
+
       ansible_inventory._meta.hostvars[hostname] = ansible_options
     })
 
     if (!fs.existsSync(options.ansible_dir)) {
       fs.mkdirSync(options.ansible_dir)
     }
+
 
     fs.writeFileSync(inventory_file, '#!/bin/sh\necho \'' + JSON.stringify(ansible_inventory) + '\'', 'utf8')
     fs.chmodSync(inventory_file, '0755')
