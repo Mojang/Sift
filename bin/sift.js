@@ -202,6 +202,13 @@ var parse_arguments = function () {
   setup_filters(accounts, regions)
 }
 
+var callback = function (result) {
+  if (result.code !== 0) {
+    console.error(colors.red('Error running ansible!'))
+    process.exit(1)
+  }
+}
+
 var setup_filters = function (accounts, regions) {
   var filters = ''
   var filter_list = []
@@ -238,10 +245,10 @@ var setup_filters = function (accounts, regions) {
         console.log('Something went wrong while setting up filters: %s'.red, error)
       }
 
-      sift.gather_servers(accounts, regions, filters.trim())  
+      sift.gather_servers(accounts, regions, filters.trim(), callback)  
     })
   } else {
-    sift.gather_servers(accounts, regions, filters)
+    sift.gather_servers(accounts, regions, filters, callback)
   }
 }
 
