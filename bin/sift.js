@@ -18,7 +18,7 @@ var async = require('async')
 var colors = require('colors')
 
 if (!config) {
-  return
+  return process.exit(1)
 }
 
 var sub_command_count = 0
