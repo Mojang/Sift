@@ -117,6 +117,7 @@ commander
   .option('-K, --keyfile <keyfile>', 'SSH keyfile')
   .option('-c, --ssh_command <ssh_command>', 'Command to execute')
   .option('-P, --private_ip', 'Use private ip when connecting')
+  .option('--public_ip', 'Use public ip when connecting')
   .option('--ansible <ansible_playbook>', 'Run an ansible playbook on target host(s)')
   .option('--ansible_extra_args <ansible_extra_args>', 'Pass extra arguments to ansible playbook')
   // Boolean options

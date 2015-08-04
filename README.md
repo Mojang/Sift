@@ -228,12 +228,13 @@ An alias can include the following parameters:
 - `port` The port that will be used for connecting
 - `keyfile` Path to the keyfile that will be used for connecting
 - `private_ip` Use the private ip for connecting to the matching hosts
+- `public_ip` Use the public ip for connecting to the matching hosts
 - `options` List of extra ssh arguments, each item will be separated by a space
 - `run_on_all` Run command (if specified, by alias or command argument) on all resulting hosts
 
 All alias variables are optional in themselves, but either accounts or query is required.  
 Most alias variables can be overriden by their command arguments such as -q for query.  
-`user`, `port`, `keyfile`, `private_ip` & `options` can also be set as an ssh config.  
+`user`, `port`, `keyfile`, `private_ip`, `public_ip & `options` can also be set as an ssh config.  
 Setting it in an alias or using will override it.  
 
 #### Including alias from file
@@ -301,6 +302,7 @@ Sift supports the following command arguments to modify the behaviour when conne
 -  `-K, --keyfile <keyfile>`          SSH keyfile
 -  `-c, --ssh_command <ssh_command>`  Command to run on host(s)
 -  `-P, --private_ip`                 Use the private ip of the host when connecting
+-  `--public_ip`                      Use the public ip of the host when connecting
 
 #### SSH options
 SSH options are defined in the config as "ssh_config".

@@ -320,6 +320,7 @@ module.exports = function (options, alias) {
       command: ssh_config.command,
       disable_tt: disable_tt,
       private_ip: ssh_config.private_ip,
+      public_ip: ssh_config.public_ip,
       extra_options: []
     }
 
@@ -359,8 +360,16 @@ module.exports = function (options, alias) {
       ssh_options.private_ip = true
     }
 
+    if (alias && alias.public_ip) {
+      ssh_options.public_ip = true
+    }
+
     if (options.private_ip) {
       ssh_options.private_ip = true
+    }
+
+    if (options.public_ip) {
+      ssh_options.public_ip = true
     }
 
     ssh_options.port = ssh_options.port ? ssh_options.port : 22
@@ -403,7 +412,7 @@ module.exports = function (options, alias) {
 
     servers.forEach(function (server) {
       server.ssh_config = build_ssh_config(server.ssh_config)
-      var hostname = (server.ssh_config.private_ip ? server.server['private-ip'] : server.server.hostname)
+      var hostname = (server.ssh_config.private_ip ? server.server['private-ip'] : (server.ssh_config.public_ip ? server.server.ip : server.server.hostname))
       var region = server.server.region.replace(/-/g, '_')
 
       ansible_inventory.all.hosts.push(hostname)

@@ -92,7 +92,7 @@ var util = module.exports = {
   },
 
   ssh: function (server, options) {
-    var default_args = [options.user + '@' + (options.private_ip ? server['private-ip'] : server.hostname)]
+    var default_args = [options.user + '@' + (options.private_ip ? server['private-ip'] : (options.public_ip ? server.ip : server.hostname))]
 
     if (options.port) {
       default_args.unshift('-p', options.port)
