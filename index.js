@@ -82,7 +82,7 @@ module.exports = function (options, alias) {
         var query = parser.generate_query_ast_sync(build_query(filters))
       } catch (error) {
         console.log('Invalid query: %s'.red, error.message)
-        return
+        return callback({ code: 1 })
       }
 
       async.concat(servers, function (server, next) {
@@ -95,7 +95,8 @@ module.exports = function (options, alias) {
         }
 
         if (!servers.length) {
-          return console.log('No matching servers found'.red)
+          console.log('No matching servers found'.red)
+          return callback({ code: 1 })
         }
 
         display_results(servers, callback)
