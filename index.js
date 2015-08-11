@@ -69,7 +69,8 @@ module.exports = function (options, alias) {
       }
 
       if (!servers.length) {
-        return console.log('No matching servers found'.red)
+        console.log('No matching servers found'.red)
+        return callback({ code: 1 })
       }
 
       filter_results(filters, servers, callback)

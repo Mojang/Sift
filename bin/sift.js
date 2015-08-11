@@ -205,7 +205,10 @@ var parse_arguments = function () {
 
 var callback = function (result) {
   if (result.code !== 0) {
-    console.error(colors.red('Error running ansible!'))
+    if (commander.ansible) {
+      console.error(colors.red('Error running ansible!'))
+    }
+
     process.exit(1)
   }
 }
