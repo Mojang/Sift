@@ -120,6 +120,7 @@ commander
   .option('--public_ip', 'Use public ip when connecting')
   .option('--ansible <ansible_playbook>', 'Run an ansible playbook on target host(s)')
   .option('--ansible_extra_args <ansible_extra_args>', 'Pass extra arguments to ansible playbook')
+  .option('--ansible_password <ansible_password>', 'SSH password to define in the ansible inventory for the hosts, not recommended to use')
   // Boolean options
   .option('-A, --run_on_all', 'Execute on all found hosts')
   .option('-f, --force_regions', 'Use specified region for all accounts regardless of configured regions')

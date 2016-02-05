@@ -431,6 +431,10 @@ module.exports = function (options, alias) {
         ansible_options.ansible_ssh_private_key_file = server.ssh_config.keyfile
       }
 
+      if (options.ansible_password) {
+        ansible_options.ansible_ssh_pass = options.ansible_password
+      }
+
       ansible_options.ansible_instance_region = region
 
       ansible_inventory._meta.hostvars[hostname] = ansible_options
