@@ -151,7 +151,7 @@ describe('Query Parser', function () {
     } catch (error) {
       ast = error
     }
-    ast.should.be.Error
+    ast.should.be.AssertionError
     done()
   })
 
