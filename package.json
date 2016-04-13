@@ -6,7 +6,7 @@
   "bin": {
     "sift": "./bin/sift.js"
   },
-  "version": "1.2.8",
+  "version": "1.2.9",
   "main": "index.js",
   "scripts": {
     "test": "make"
