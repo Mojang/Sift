@@ -5,7 +5,7 @@ var config_file
 var index_of_file_config = process.argv.indexOf('-C')
 if (index_of_file_config > -1) {
   if (process.argv.length > index_of_file_config + 1) {
-    config_file = process.argv[index_of_file_config + 1]  
+    config_file = process.argv[index_of_file_config + 1]
   }
 }
 
@@ -28,13 +28,13 @@ Object.keys(config.alias).forEach(function (alias_key) {
   var i = 0
   var alias_split = alias_key.split(' ')
   var alias_length = alias_split.length
-  
+
   if (sub_command_count < alias_length) {
     sub_command_count = alias_length
   }
 
   alias_split.forEach(function (the_split) {
-    if (!subcommands[i]) {  
+    if (!subcommands[i]) {
       subcommands[i] = i > 0 ? {} : []
     }
 
@@ -78,7 +78,7 @@ complete.on('complete', function (fragment, word, line) {
   var split = fragment.split('subcommand')
   if (split && split.length) {
     var item = subcommands[split[1]]
-    
+
     if (item) {
       if (split[1] === '0') {
         this.reply(item)
@@ -119,7 +119,7 @@ commander
   .option('-P, --private_ip', 'Use private ip when connecting')
   .option('--public_ip', 'Use public ip when connecting')
   .option('--ansible <ansible_playbook>', 'Run an ansible playbook on target host(s)')
-  .option('--ansible_extra_args <ansible_extra_args>', 'Pass extra arguments to ansible playbook')
+  .option('--ansible_extra_args <ansible_extra_args>', 'Pass extra arguments to ansible playbook', util.list)
   .option('--ansible_password <ansible_password>', 'SSH password to define in the ansible inventory for the hosts, not recommended to use')
   // Boolean options
   .option('-A, --run_on_all', 'Execute on all found hosts')
@@ -250,7 +250,7 @@ var setup_filters = function (accounts, regions) {
         console.log('Something went wrong while setting up filters: %s'.red, error)
       }
 
-      sift.gather_servers(accounts, regions, filters.trim(), callback)  
+      sift.gather_servers(accounts, regions, filters.trim(), callback)
     })
   } else {
     sift.gather_servers(accounts, regions, filters, callback)

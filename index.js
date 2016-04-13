@@ -452,13 +452,15 @@ module.exports = function (options, alias) {
     ansible_args.push(options.ansible, '-i', inventory_file)
 
     if (options.ansible_extra_args) {
-      ansible_args.push('-e', options.ansible_extra_args)
+      for (var i in options.ansible_extra_args) {
+        ansible_args.push('-e', options.ansible_extra_args[i])
+      }
     }
-    
+
     if (options.verbose) {
       ansible_args.push('-vvvv')
       console.log('Running \'ansible-playbook ' + ansible_args.join(' ') + '\'')
-    }  
+    }
 
     var child = require('child_process').spawn('ansible-playbook', ansible_args, { stdio: 'inherit' })
     child.on('exit', function (code, signal) {
