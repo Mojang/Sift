@@ -1,4 +1,5 @@
 var util = require('../util')
+var path = require('path')
 module.exports = {
 
   search: function (account, callback) {
@@ -12,9 +13,9 @@ module.exports = {
       var data
 
       try {
-        data = require(file)
+        data = require(path.resolve(file))
       } catch (e) {
-        return console.log('Error reading %s, invalid syntax?'.red, file)
+        return console.log('Error reading %s, invalid syntax?'.red, file, e)
       }
 
       data.forEach(function (server) {
