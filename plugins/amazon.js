@@ -19,7 +19,7 @@ module.exports = {
       aws.config.update({ accessKeyId: account.public_token, secretAccessKey: account.token })
     } else if (account.profile) {
       aws.config.credentials = new aws.SharedIniFileCredentials({ profile: account.profile })
-    } else {
+    } else if (!account.iam) {
       delete aws.config.credentials
     }
 
