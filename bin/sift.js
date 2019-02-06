@@ -112,7 +112,7 @@ commander
   .option('-q, --query <query>', 'Query')
   .option('-e, --enable_filters <filter>', 'Enable specific filter(s)', util.list)
   //   - this works because detect-color checks argv again for this flag. We just need to whitelist it here
-  .option('--color <mode>', 'Control colors. Valid modes are true, false or always')
+  .option('--color <mode>', 'Control colors. Valid modes are true, false or always. Use equal-sign syntax: "--color=false"')
   // SSH options
   .option('-u, --user <user>', 'SSH user')
   .option('-p, --port <port>', 'SSH port')
