@@ -146,7 +146,7 @@ $ sift -q '(name contains session) or (id = i-ae7fcafc)'
 ```
 
 As you see the statement consists of key-value pairs. Retrieving keys is mentioned in the previous section. 
-You can combine logical statement as much as you need. If you need to have whitespaces or use `sift` keywords in your values you can escape them by using double qoutes like this:
+You can combine logical statement as much as you need. If you need to have whitespaces or use `sift` keywords in your values you can escape them by using double quotes like this:
 
 ```bash
 $ sift -q "(name contains 'auth session') or (id = i-ae7fcafc)"
@@ -233,7 +233,7 @@ An alias can include the following parameters:
 - `run_on_all` Run command (if specified, by alias or command argument) on all resulting hosts
 
 All alias variables are optional in themselves, but either accounts or query is required.  
-Most alias variables can be overriden by their command arguments such as -q for query.  
+Most alias variables can be overridden by their command arguments such as -q for query.  
 `user`, `port`, `keyfile`, `private_ip`, `public_ip & `options` can also be set as an ssh config.  
 Setting it in an alias or using will override it.  
 
